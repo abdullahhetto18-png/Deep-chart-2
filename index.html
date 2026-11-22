@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="DeepCharts Pro">
-<title>DeepCharts Pro Terminal</title>
+<title>DeepCharts CME Futures Terminal</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none}
 body{background:#0b0e14;color:#e6edf3;overflow:hidden;display:flex;flex-direction:column;height:100vh;padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(8px,env(safe-area-inset-bottom))}
@@ -19,7 +19,7 @@ button.act{background:#2962ff;border-color:#2962ff;color:#fff}button.buy{backgro
 .box{background:#131722;border:1px solid #2a2e39;border-radius:10px;width:100%;max-width:410px;max-height:85vh;overflow-y:auto;padding:12px}
 .sec{color:#2962ff;font-weight:700;font-size:12px;margin:8px 0 5px;border-bottom:1px solid #2a2e39;padding-bottom:3px}
 .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12px}
-.row input[type=number],.row input[type=text]{width:120px;text-align:center;-webkit-user-select:text;user-select:text}
+.row input[type=number],.row input[type=text],.row input[type=password]{width:130px;text-align:center;-webkit-user-select:text;user-select:text}
 textarea{width:100%;height:110px;background:#0b0e14;color:#00e676;border:1px solid #2a2e39;border-radius:6px;padding:6px;font-family:monospace;font-size:11px;direction:ltr;text-align:left;-webkit-user-select:text;user-select:text}
 .item{display:flex;justify-content:space-between;align-items:center;background:#1e222d;padding:5px 8px;border-radius:5px;margin-bottom:4px;font-size:11px}
 table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}th,td{border:1px solid #2a2e39;padding:4px;text-align:center}
@@ -31,7 +31,13 @@ table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}th,td{bo
 <div id="top">
   <div style="display:flex;gap:4px">
     <select id="sym" onchange="init()">
-      <option value="PAXGUSDT">الذهب (GOLD)</option><option value="BTCUSDT">النازداك/بيتكوين (BTC)</option><option value="EURUSDT">اليورو (EUR/USD)</option><option value="GBPUSDT">الباوند (GBP/USD)</option><option value="ETHUSDT">الفضة/إيثيريوم (ETH)</option>
+      <option value="GCZ6">الذهب الآجل (GCZ6)</option>
+      <option value="NQZ6">النازداك الآجل (NQZ6)</option>
+      <option value="ESZ6">إس آند بي (ESZ6)</option>
+      <option value="YMZ6">الداو جونز (YMZ6)</option>
+      <option value="6EZ6">اليورو الآجل (6EZ6)</option>
+      <option value="6BZ6">الباوند الآجل (6BZ6)</option>
+      <option value="CLF7">النفط الخام (CLF7)</option>
     </select>
     <select id="tf" onchange="init()">
       <option value="15s">15s</option><option value="1m">1m</option><option value="5m" selected>5m</option><option value="15m">15m</option><option value="1h">1h</option><option value="R20">20 Range</option><option value="R40">40 Range</option>
@@ -60,7 +66,7 @@ table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}th,td{bo
     <select id="spd"><option value="1000">1x</option><option value="350" selected>2x</option><option value="100">5x</option></select>
     <button onclick="setTool('REPLAY')" style="background:#2962ff;color:#fff">✂️ ريبلاي</button><button onclick="rst()">🔄</button>
   </div>
-  <span id="st" style="color:#00e676;font-size:11px">متصل مباشر</span>
+  <span id="st" style="color:#787b86;font-size:11px">في انتظار الاتصال</span>
 </div>
 <div id="statM" class="mod"><div class="box">
   <div class="row"><strong>🏆 إحصائيات الاستراتيجية ومنحنى الأرباح</strong><button onclick="closeM('statM')" style="background:#f23645;border:0">إغلاق</button></div>
@@ -78,20 +84,23 @@ table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}th,td{bo
   <button class="buy" style="width:100%;margin-top:6px" onclick="saveInd()">✅ حفظ وإضافة</button>
 </div></div>
 <div id="setM" class="mod"><div class="box">
-  <div class="row"><strong>⚙️ إعدادات الرسوم والأدوات</strong><button onclick="closeM('setM');draw()" style="background:#f23645;border:0">حفظ</button></div>
-  <div class="sec">إعدادات الشموع اليابانية والخط السعري</div>
+  <div class="row"><strong>⚙️ إعدادات الرسوم وحساب CME</strong><button onclick="closeM('setM');init()" style="background:#f23645;border:0">حفظ</button></div>
+  <div class="sec">0. حساب NinjaTrader / Tradovate</div>
+  <div class="row"><span>اسم المستخدم</span><input type="text" id="u" onchange="svC()"></div>
+  <div class="row"><span>كلمة المرور</span><input type="password" id="p" onchange="svC()"></div>
+  <div class="sec">1. الشموع اليابانية والخط السعري</div>
   <div class="row"><span>لون الشمعة الصاعدة</span><input type="color" id="colBull" value="#089981" onchange="draw()"></div>
   <div class="row"><span>لون الشمعة الهابطة</span><input type="color" id="colBear" value="#f23645" onchange="draw()"></div>
   <div class="row"><span>سمك خط الأسعار (Line)</span><input type="number" id="lineW" value="2" min="1" max="6" onchange="draw()"></div>
-  <div class="sec">إعدادات الفوت برنت وشموع الفوليوم</div>
-  <div class="row"><span>تجميع السعر (Tick Step)</span><input type="number" id="cStp" value="0.5" step="0.1" onchange="draw()"></div>
+  <div class="sec">2. الفوت برنت وشموع الفوليوم</div>
+  <div class="row"><span>تجميع السعر (Tick Step)</span><input type="number" id="cStp" value="0.5" step="0.0005" onchange="draw()"></div>
   <div class="row"><span>نسبة عدم التوازن %</span><input type="number" id="cImb" value="300" onchange="draw()"></div>
-  <div class="sec">البروفايلات والفقاعات والسيولة</div>
+  <div class="sec">3. البروفايلات والفقاعات والسيولة</div>
   <div class="row"><span>بروفايل الجلسة (Session)</span><input type="checkbox" id="cSes" checked onchange="draw()"></div>
   <div class="row"><span>فقاعات الصفقات (Bubbles)</span><input type="checkbox" id="cBub" checked onchange="draw()"></div>
-  <div class="row"><span>حجم العقد (Trade Size)</span><input type="number" id="cTS" value="2" onchange="draw()"></div>
+  <div class="row"><span>حجم العقد (Trade Size)</span><input type="number" id="cTS" value="5" onchange="draw()"></div>
   <div class="row"><span>مؤشر الدلتا التراكمية (CVD)</span><input type="checkbox" id="cCVD" checked onchange="draw()"></div>
-  <div class="sec">إعدادات الحساب التجريبي</div>
+  <div class="sec">4. إعدادات الحساب التجريبي</div>
   <div class="row"><span>حجم العقد للتداول (Lot)</span><input type="number" id="lotSz" value="1" step="0.5"></div>
 </div></div>
 <script>
@@ -102,16 +111,18 @@ let acc={bal:10000,pos:null,trades:[],eq:[10000]};
 
 const prs={
   vwap:{n:"VWAP",c:"let pv=0,v=0;x.strokeStyle='#e040fb';x.lineWidth=1.5;x.beginPath();candles.forEach((b,i)=>{let t=(b.h+b.l+b.c)/3;pv+=t*b.v;v+=b.v;let w=v>0?pv/v:b.c;i?x.lineTo(i*sx+sx/2,p2y(w)):x.moveTo(i*sx+sx/2,p2y(w))});x.stroke();"},
-  ema:{n:"EMA 20/50",c:"[[20,'#00bcd4'],[50,'#ff9800']].forEach(([l,cl])=>{let k=2/(l+1),e=candles.c;x.strokeStyle=cl;x.beginPath();candles.forEach((b,i)=>{e=b.c*k+e*(1-k);i?x.lineTo(i*sx+sx/2,p2y(e)):x.moveTo(i*sx+sx/2,p2y(e))});x.stroke()});"},
+  ema:{n:"EMA 20/50",c:"[[20,'#00bcd4'],[50,'#ff9800']].forEach(([l,cl])=>{let k=2/(l+1),e=candles[0].c;x.strokeStyle=cl;x.beginPath();candles.forEach((b,i)=>{e=b.c*k+e*(1-k);i?x.lineTo(i*sx+sx/2,p2y(e)):x.moveTo(i*sx+sx/2,p2y(e))});x.stroke()});"},
   abs:{n:"Absorption",c:"let av=candles.reduce((s,b)=>s+b.v,0)/Math.max(1,candles.length);candles.forEach((b,i)=>{let bd=Math.abs(b.c-b.o),rg=b.h-b.l;if(b.v>av*1.8&&rg>0&&bd/rg<.3){let bt=b.c>(b.h+b.l)/2;x.fillStyle=bt?'#00e676':'#ff2e63';x.fillText(bt?'▲':'▼',i*sx+sx/2-4,bt?p2y(b.l)+12:p2y(b.h)-4)}});"}
 };
 
 window.onload=()=>{
+  ['u','p'].forEach(k=>{if(localStorage.getItem(k))document.getElementById(k).value=localStorage.getItem(k)});
   inds=JSON.parse(localStorage.getItem('inds2')||'null')||[{id:1,n:prs.vwap.n,c:prs.vwap.c,on:true}];
   let svAcc=localStorage.getItem('demoAcc');if(svAcc)acc=JSON.parse(svAcc);
   updAccUI();rsz();init();
 };
 
+function svC(){['u','p'].forEach(k=>localStorage.setItem(k,document.getElementById(k).value))}
 function openM(id){if(id=='scrM')rndI();if(id=='statM')rndStats();document.getElementById(id).style.display='flex'}
 function closeM(id){document.getElementById(id).style.display='none';draw()}
 function rsz(){c.width=c.parentElement.clientWidth;c.height=c.parentElement.clientHeight;draw()}
@@ -127,6 +138,8 @@ function saveInd(){let n=document.getElementById('iName').value||'مؤشر',cd=d
 function curPrice(){return bars.length&&rep>0?bars[rep-1].c:0}
 function fmtDate(ms){let d=new Date(ms);return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
 
+function getMult(sym){return sym=='GCZ6'?100:(sym=='NQZ6'?20:(sym=='ESZ6'?50:(sym=='YMZ6'?5:(sym=='6EZ6'?125000:(sym=='6BZ6'?62500:1000)))))}
+
 function trade(side){
   let p=curPrice();if(!p)return;
   if(acc.pos)closePos();
@@ -141,8 +154,7 @@ function closePos(){
   let p=curPrice();if(!p)return;
   let diff=acc.pos.side=='BUY'?(p-acc.pos.entry):(acc.pos.entry-p);
   let sym=document.getElementById('sym').value;
-  let mult=sym.includes('EUR')||sym.includes('GBP')?10000:10;
-  let pnl=diff*acc.pos.lot*mult;
+  let pnl=diff*acc.pos.lot*getMult(sym);
   acc.bal+=pnl;acc.eq.push(acc.bal);
   let tm=bars[rep-1].t||Date.now();
   acc.trades.unshift({side:acc.pos.side,entry:acc.pos.entry,exit:p,pnl,time:acc.pos.time+' -> '+fmtDate(tm)});
@@ -155,8 +167,7 @@ function updAccUI(){
   let openPnl=0;
   if(acc.pos&&curPrice()){
     let diff=acc.pos.side=='BUY'?(curPrice()-acc.pos.entry):(acc.pos.entry-curPrice());
-    let sym=document.getElementById('sym').value;
-    openPnl=diff*acc.pos.lot*(sym.includes('EUR')||sym.includes('GBP')?10000:10);
+    openPnl=diff*acc.pos.lot*getMult(document.getElementById('sym').value);
   }
   let tot=acc.bal+openPnl;
   let el=document.getElementById('pnlTxt');
@@ -180,39 +191,42 @@ function rndStats(){
 
 async function init(){
   stpP();if(ws){ws.close();ws=null}
-  let sym=document.getElementById('sym').value,tf=document.getElementById('tf').value;
-  document.getElementById('cStp').value=sym.includes('EUR')||sym.includes('GBP')?0.0005:(sym=='BTCUSDT'?15:0.5);
-  document.getElementById('st').innerText="جاري جلب البيانات...";
+  let sym=document.getElementById('sym').value;
+  let isFx=sym.startsWith('6');
+  document.getElementById('cStp').value=isFx?0.0005:(sym=='NQZ6'?2:(sym=='YMZ6'?5:(sym=='CLF7'?0.05:0.5)));
+  let u=document.getElementById('u').value.trim(),p=document.getElementById('p').value.trim();
+  if(!u||!p){document.getElementById('st').innerText="اضغط ⚙️ لإدخال حساب NinjaTrader";return}
+  document.getElementById('st').innerText="اتصال بـ CME Futures...";
   try{
-    bars=[];
-    if(tf=='15s'||tf.startsWith('R')){
-      let r=await fetch('https://binance.com');
-      let d=await r.json();
-      d.forEach(t=>tick(parseFloat(t.p),parseFloat(t.q),t.m,t.T,0));
-    }else{
-      let r=await fetch('https://binance.com');
-      let d=await r.json();let cvd=0;
-      bars=d.map(k=>{
-        let v=parseFloat(k),bv=parseFloat(k),sv=v-bv,dl=bv-sv;cvd+=dl;
-        let o=parseFloat(k),h=parseFloat(k),l=parseFloat(k),cl=parseFloat(k);
-        let st=parseFloat(document.getElementById('cStp').value)||0.5,mid=(Math.round(((h+l)/2)/st)*st).toFixed(4);
-        let fp={};fp[mid]={b:sv,a:bv};
-        return {t:k,o,h,l,c:cl,v,d:dl,cvd,fp,tr:v>4?[{p:(h+l+cl)/3,q:v*.3,s:dl<0}]:[]};
+    let proxy='https://corsproxy.io;
+    let r=await fetch(proxy,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:u,password:p,appId:'Sample App',appVersion:'1.0',cid:8,sec:'9c30a5a8-0286-4551-9f31-183440196c87'})});
+    let d=await r.json();
+    if(!d.mdAccessToken){document.getElementById('st').innerText="خطأ في بيانات الدخول ⚙️";return}
+    document.getElementById('st').innerText="متصل بـ CME ("+sym+")";bars=[];
+    ws=new WebSocket('wss://://tradovateapi.com');
+    ws.onopen=()=>{
+      ws.send("authorize\n0\n\n"+d.mdAccessToken);
+      ws.send('md/subscribeQuote\n1\n\n{"symbol":"'+sym+'"}');
+      ws.send('md/getChart\n2\n\n{"symbol":"'+sym+'","chartDescription":{"underlyingType":"Tick","elementSize":1,"elementSizeUnit":"UnderlyingUnits"},"timeRange":{"asMuchAsElements":1500}}');
+    };
+    ws.onmessage=e=>{
+      if(e.data.startsWith('a'))JSON.parse(e.data.slice(1)).forEach(it=>{
+        if(it.d&&it.d.charts)it.d.charts.forEach(ch=>{if(ch.bars){ch.bars.forEach(b=>tick(b.close,(b.upVolume+b.downVolume)||1,b.close<b.open,new Date(b.timestamp).getTime(),0));rep=bars.length;off=Math.max(0,rep-vis);draw()}});
+        if(it.d&&it.d.quotes)it.d.quotes.forEach(q=>{if(q.entries&&q.entries.Trade)tick(q.entries.Trade.price,q.entries.Trade.size||1,q.entries.Bid&&q.entries.Trade.price<=q.entries.Bid.price,Date.now(),1)});
       });
-    }
-    rep=bars.length;off=Math.max(0,rep-vis);document.getElementById('st').innerText="متصل مباشر ("+tf+")";draw();
-    ws=new WebSocket('wss://://binance.com');
-    ws.onmessage=e=>{let m=JSON.parse(e.data);tick(parseFloat(m.p),parseFloat(m.q),m.m,m.T,1)};
-  }catch(e){document.getElementById('st').innerText="تعذر الاتصال"}
+    };
+  }catch(e){document.getElementById('st').innerText="تعذر الاتصال ببوابة CME"}
 }
 
 function tick(pr,qt,sl,tm,lv){
-  let tf=document.getElementById('tf').value,st=parseFloat(document.getElementById('cStp').value)||0.5,lvl=(Math.round(pr/st)*st).toFixed(4);
+  let sym=document.getElementById('sym').value,tf=document.getElementById('tf').value;
+  let tk=sym.startsWith('6')?0.0001:(sym=='CLF7'?0.01:(sym=='YMZ6'?1:(sym=='GCZ6'?0.1:0.25)));
+  let st=parseFloat(document.getElementById('cStp').value)||tk,lvl=(Math.round(pr/st)*st).toFixed(4);
   const tfM={'15s':15000,'1m':60000,'5m':300000,'15m':900000,'1h':3600000};
   let b=bars.length?bars[bars.length-1]:null,nw=!b;
   if(b){
     if(tfM[tf]&&Math.floor(tm/tfM[tf])*tfM[tf]>b.t)nw=1;
-    else if(tf.startsWith('R')&&Math.abs(pr-b.o)>=parseInt(tf.slice(1))*(st/5))nw=1;
+    else if(tf.startsWith('R')&&Math.abs(pr-b.o)>=parseInt(tf.slice(1))*tk)nw=1;
   }
   if(nw){
     let t0=tfM[tf]?Math.floor(tm/tfM[tf])*tfM[tf]:tm;
@@ -290,7 +304,7 @@ function draw(){
   for(let i=0;i<=5;i++){let p=lo+((hi-lo)/5)*i,y=p2y(p);x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke();x.fillText(p.toFixed(2),w+4,y+3)}
 
   if(document.getElementById('cSes').checked&&rep>10)drawProfile(Math.max(0,rep-50),rep-1,sx,p2y);
-  if(vpRange)drawProfile(vpRange,vpRange,sx,p2y);
+  if(vpRange)drawProfile(vpRange[0],vpRange[1],sx,p2y);
 
   let style=document.getElementById('cStyle').value;
   let colBull=document.getElementById('colBull').value,colBear=document.getElementById('colBear').value;
@@ -330,7 +344,7 @@ function draw(){
       }
     }
     if(document.getElementById('cBub').checked){
-      let ts=parseFloat(document.getElementById('cTS').value)||2;
+      let ts=parseFloat(document.getElementById('cTS').value)||5;
       b.tr.forEach(t=>{if(t.q>=ts){let r=Math.min(18,Math.max(5,(t.q/ts)*4)),by=p2y(t.p);x.beginPath();x.arc(cx,by,r,0,6.28);x.fillStyle=t.s?'rgba(255,46,99,.45)':'rgba(0,230,118,.45)';x.fill();x.strokeStyle=t.s?'#ff2e63':'#00e676';x.stroke()}});
     }
   });
