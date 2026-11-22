@@ -6,207 +6,273 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="DeepCharts Pro">
-<title>DeepCharts Pro</title>
+<title>DeepCharts Pro Terminal</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;-webkit-user-select:none;user-select:none}
-body{background:#0b0e14;color:#e6edf3;overflow:hidden;display:flex;flex-direction:column;height:100vh;padding-top:max(14px,env(safe-area-inset-top));padding-bottom:max(10px,env(safe-area-inset-bottom))}
-#top,#bot{display:flex;gap:5px;padding:8px 10px;background:#131722;align-items:center;justify-content:space-between;font-size:12px;flex-wrap:wrap;z-index:10}
-#top{border-bottom:1px solid #2a2e39}#bot{border-top:1px solid #2a2e39}
-select,input,button{background:#1e222d;color:#d1d4dc;border:1px solid #2a2e39;padding:6px 9px;border-radius:6px;font-size:12px;cursor:pointer}
-button.act{background:#2962ff;border-color:#2962ff;color:#fff}button.pri{background:#089981;border-color:#089981;color:#fff}
+body{background:#0b0e14;color:#e6edf3;overflow:hidden;display:flex;flex-direction:column;height:100vh;padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(8px,env(safe-area-inset-bottom))}
+#top,#bar2,#bot{display:flex;gap:4px;padding:5px 7px;background:#131722;align-items:center;justify-content:space-between;font-size:11px;flex-wrap:wrap;z-index:10}
+#top,#bar2{border-bottom:1px solid #2a2e39}#bot{border-top:1px solid #2a2e39}
+select,input,button{background:#1e222d;color:#d1d4dc;border:1px solid #2a2e39;padding:5px 7px;border-radius:5px;font-size:11px;cursor:pointer}
+button.act{background:#2962ff;border-color:#2962ff;color:#fff}button.buy{background:#089981;border:0;color:#fff;font-weight:700}button.sell{background:#f23645;border:0;color:#fff;font-weight:700}
 #wrap{flex:1;position:relative;width:100%;touch-action:none}canvas{display:block;width:100%;height:100%}
-.mod{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:999;align-items:center;justify-content:center;padding:15px}
-.box{background:#131722;border:1px solid #2a2e39;border-radius:10px;width:100%;max-width:400px;max-height:84vh;overflow-y:auto;padding:14px}
-.sec{color:#2962ff;font-weight:700;font-size:12px;margin:9px 0 6px;border-bottom:1px solid #2a2e39;padding-bottom:3px}
-.row{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;font-size:12px}
-.row input[type=number],.row input[type=text],.row input[type=password]{width:135px;text-align:center;-webkit-user-select:text;user-select:text}
-textarea{width:100%;height:120px;background:#0b0e14;color:#00e676;border:1px solid #2a2e39;border-radius:6px;padding:6px;font-family:monospace;font-size:11px;direction:ltr;text-align:left;-webkit-user-select:text;user-select:text}
-.item{display:flex;justify-content:space-between;align-items:center;background:#1e222d;padding:6px 8px;border-radius:5px;margin-bottom:4px;font-size:11px}
+.mod{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:999;align-items:center;justify-content:center;padding:12px}
+.box{background:#131722;border:1px solid #2a2e39;border-radius:10px;width:100%;max-width:410px;max-height:85vh;overflow-y:auto;padding:12px}
+.sec{color:#2962ff;font-weight:700;font-size:12px;margin:8px 0 5px;border-bottom:1px solid #2a2e39;padding-bottom:3px}
+.row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:12px}
+.row input[type=number],.row input[type=text]{width:120px;text-align:center;-webkit-user-select:text;user-select:text}
+textarea{width:100%;height:110px;background:#0b0e14;color:#00e676;border:1px solid #2a2e39;border-radius:6px;padding:6px;font-family:monospace;font-size:11px;direction:ltr;text-align:left;-webkit-user-select:text;user-select:text}
+.item{display:flex;justify-content:space-between;align-items:center;background:#1e222d;padding:5px 8px;border-radius:5px;margin-bottom:4px;font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}th,td{border:1px solid #2a2e39;padding:4px;text-align:center}
+#alertBanner{display:none;position:fixed;top:65px;left:50%;transform:translateX(-50%);background:#ff9800;color:#000;padding:8px 16px;border-radius:20px;font-weight:700;font-size:12px;z-index:9999}
 </style>
 </head>
 <body>
+<div id="alertBanner">🔔 تم الوصول إلى سعر التنبيه!</div>
 <div id="top">
-  <div style="display:flex;gap:5px">
+  <div style="display:flex;gap:4px">
     <select id="sym" onchange="init()">
-      <optgroup label="المعادن (Metals)">
-        <option value="GCZ6">الذهب (GCZ6)</option><option value="SIZ6">الفضة (SIZ6)</option><option value="HGZ6">النحاس (HGZ6)</option>
-      </optgroup>
-      <optgroup label="المؤشرات (Indices)">
-        <option value="NQZ6">النازداك (NQZ6)</option><option value="ESZ6">إس آند بي (ESZ6)</option><option value="YMZ6">الداو جونز (YMZ6)</option><option value="RTYZ6">راسل (RTYZ6)</option>
-      </optgroup>
-      <optgroup label="العملات الأجنبية (Forex Futures)">
-        <option value="6EZ6">اليورو (6EZ6)</option><option value="6BZ6">الباوند (6BZ6)</option><option value="6JZ6">الين الياباني (6JZ6)</option><option value="6AZ6">الأسترالي (6AZ6)</option><option value="6CZ6">الكندي (6CZ6)</option><option value="6SZ6">الفرنك (6SZ6)</option>
-      </optgroup>
-      <optgroup label="الطاقة (Energy)">
-        <option value="CLF7">النفط الخام (CLF7)</option><option value="NGF7">الغاز الطبيعي (NGF7)</option>
-      </optgroup>
+      <option value="PAXGUSDT">الذهب (GOLD)</option><option value="BTCUSDT">النازداك/بيتكوين (BTC)</option><option value="EURUSDT">اليورو (EUR/USD)</option><option value="GBPUSDT">الباوند (GBP/USD)</option><option value="ETHUSDT">الفضة/إيثيريوم (ETH)</option>
     </select>
     <select id="tf" onchange="init()">
-      <optgroup label="فريمات الثواني">
-        <option value="5s">5 ثواني</option><option value="15s">15 ثانية</option><option value="30s">30 ثانية</option>
-      </optgroup>
-      <optgroup label="فريمات الدقائق والساعات">
-        <option value="1m">1 دقيقة</option><option value="3m">3 دقائق</option><option value="5m" selected>5 دقائق</option><option value="15m">15 دقيقة</option><option value="30m">30 دقيقة</option><option value="1h">1 ساعة</option><option value="4h">4 ساعات</option>
-      </optgroup>
-      <optgroup label="شموع الرينج (Range)">
-        <option value="R10">10 Range</option><option value="R20">20 Range</option><option value="R40">40 Range</option><option value="R80">80 Range</option>
-      </optgroup>
+      <option value="15s">15s</option><option value="1m">1m</option><option value="5m" selected>5m</option><option value="15m">15m</option><option value="1h">1h</option><option value="R20">20 Range</option><option value="R40">40 Range</option>
+    </select>
+    <select id="cStyle" onchange="draw()">
+      <option value="CANDLE">🕯️ شموع يابانية</option><option value="FP">🔢 فوت برنت</option><option value="VOLC">📊 شموع فوليوم</option><option value="LINE">📈 خط أسعار</option>
     </select>
   </div>
-  <div style="display:flex;gap:5px">
-    <button onclick="openM('setM')" style="background:#2962ff;color:#fff;font-weight:bold">⚙️ الإعدادات</button>
-    <button id="bVP" onclick="setMode(1)">📊 نطاق</button><button onclick="clrVP()">🗑️</button><button onclick="openM('scrM')">📜</button><button onclick="zm(1.25)">➕</button><button onclick="zm(0.8)">➖</button>
+  <div style="display:flex;gap:4px">
+    <button onclick="openM('setM')" style="background:#2962ff;color:#fff">⚙️</button><button onclick="openM('statM')">🏆 الأداء</button><button onclick="openM('scrM')">📜</button><button onclick="zm(1.25)">➕</button><button onclick="zm(0.8)">➖</button>
+  </div>
+</div>
+<div id="bar2">
+  <div style="display:flex;gap:3px">
+    <button id="tTrend" onclick="setTool('TREND')">📏 ترند</button><button id="tHoriz" onclick="setTool('HORIZ')">➖ أفقي</button><button id="tBox" onclick="setTool('BOX')">⬜ منطقة</button><button id="tVP" onclick="setTool('VP')">📊 بروفايل</button><button id="tAlert" onclick="setTool('ALERT')">🔔 تنبيه</button><button onclick="clrDraw()">🗑️</button>
+  </div>
+  <div style="display:flex;gap:4px;align-items:center">
+    <button class="buy" onclick="trade('BUY')">شراء</button><button class="sell" onclick="trade('SELL')">بيع</button><button onclick="closePos()">إغلاق</button>
+    <span id="pnlTxt" style="font-weight:700;color:#00e676">10,000$</span>
   </div>
 </div>
 <div id="wrap"><canvas id="c"></canvas></div>
 <div id="bot">
-  <div style="display:flex;gap:5px;align-items:center">
-    <button class="pri" id="bPlay" onclick="togPlay()">▶️</button><button onclick="step()">⏭️</button>
+  <div style="display:flex;gap:4px;align-items:center">
+    <button class="buy" id="bPlay" onclick="togPlay()">▶️</button><button onclick="step()">⏭️</button>
     <select id="spd"><option value="1000">1x</option><option value="350" selected>2x</option><option value="100">5x</option></select>
-    <button onclick="setMode(3)" style="background:#2962ff;color:#fff">✂️ ريبلاي</button><button onclick="rst()">🔄</button>
+    <button onclick="setTool('REPLAY')" style="background:#2962ff;color:#fff">✂️ ريبلاي</button><button onclick="rst()">🔄</button>
   </div>
-  <span id="st" style="color:#787b86;font-size:11px">في انتظار الربط</span>
+  <span id="st" style="color:#00e676;font-size:11px">متصل مباشر</span>
 </div>
+<div id="statM" class="mod"><div class="box">
+  <div class="row"><strong>🏆 إحصائيات الاستراتيجية ومنحنى الأرباح</strong><button onclick="closeM('statM')" style="background:#f23645;border:0">إغلاق</button></div>
+  <canvas id="eqC" width="370" height="110" style="background:#0b0e14;border:1px solid #2a2e39;border-radius:6px;margin-bottom:8px"></canvas>
+  <div id="statSummary" style="font-size:12px;line-height:1.6"></div>
+  <div style="max-height:180px;overflow-y:auto"><table><thead><tr><th>النوع</th><th>الدخول</th><th>الخروج</th><th>الربح/الخسارة</th><th>التاريخ والوقت الدقيق</th></tr></thead><tbody id="trLog"></tbody></table></div>
+  <button onclick="resetAccount()" style="width:100%;margin-top:8px;background:#f23645;border:0">🔄 تصفير الحساب التجريبي (10,000$)</button>
+</div></div>
 <div id="scrM" class="mod"><div class="box">
-  <div class="row"><strong>📜 مدير المؤشرات والأكواد</strong><button onclick="closeM('scrM')" style="background:#f23645;border:0">إغلاق</button></div>
+  <div class="row"><strong>📜 المؤشرات المخصصة</strong><button onclick="closeM('scrM')" style="background:#f23645;border:0">إغلاق</button></div>
   <div id="iList"></div>
-  <div class="sec">إضافة قالب جاهز أو كود مخصص</div>
-  <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">
-    <button onclick="pre('vwap')">+ VWAP Bands</button><button onclick="pre('abs')">+ كشف الامتصاص</button><button onclick="pre('ema')">+ EMA 20/50</button><button onclick="pre('lvl')">+ قمة/قاع الجلسة</button>
-  </div>
-  <div class="row"><span>اسم المؤشر:</span><input type="text" id="iName" placeholder="VWAP"></div>
-  <textarea id="iCode" spellcheck="false"></textarea>
-  <div id="sErr" style="color:#ff2e63;font-size:10px;direction:ltr"></div>
-  <button class="pri" style="width:100%;margin-top:6px" onclick="saveInd()">✅ حفظ وإضافة للشارت</button>
+  <div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0"><button onclick="pre('vwap')">+ VWAP</button><button onclick="pre('ema')">+ EMA 20/50</button><button onclick="pre('abs')">+ امتصاص</button></div>
+  <div class="row"><span>الاسم:</span><input type="text" id="iName" placeholder="VWAP"></div>
+  <textarea id="iCode"></textarea>
+  <button class="buy" style="width:100%;margin-top:6px" onclick="saveInd()">✅ حفظ وإضافة</button>
 </div></div>
 <div id="setM" class="mod"><div class="box">
-  <div class="row"><strong>⚙️ إعدادات DeepCharts</strong><button onclick="closeM('setM');init()" style="background:#f23645;border:0">حفظ وإغلاق</button></div>
-  <div class="sec">0. حساب NinjaTrader / Tradovate</div>
-  <div class="row"><span>اسم المستخدم</span><input type="text" id="u" onchange="svC()"></div>
-  <div class="row"><span>كلمة المرور</span><input type="password" id="p" onchange="svC()"></div>
-  <div class="sec">1. جميع البروفايلات</div>
+  <div class="row"><strong>⚙️ إعدادات الرسوم والأدوات</strong><button onclick="closeM('setM');draw()" style="background:#f23645;border:0">حفظ</button></div>
+  <div class="sec">إعدادات الشموع اليابانية والخط السعري</div>
+  <div class="row"><span>لون الشمعة الصاعدة</span><input type="color" id="colBull" value="#089981" onchange="draw()"></div>
+  <div class="row"><span>لون الشمعة الهابطة</span><input type="color" id="colBear" value="#f23645" onchange="draw()"></div>
+  <div class="row"><span>سمك خط الأسعار (Line)</span><input type="number" id="lineW" value="2" min="1" max="6" onchange="draw()"></div>
+  <div class="sec">إعدادات الفوت برنت وشموع الفوليوم</div>
+  <div class="row"><span>تجميع السعر (Tick Step)</span><input type="number" id="cStp" value="0.5" step="0.1" onchange="draw()"></div>
+  <div class="row"><span>نسبة عدم التوازن %</span><input type="number" id="cImb" value="300" onchange="draw()"></div>
+  <div class="sec">البروفايلات والفقاعات والسيولة</div>
   <div class="row"><span>بروفايل الجلسة (Session)</span><input type="checkbox" id="cSes" checked onchange="draw()"></div>
-  <div class="row"><span>البروفايل المرئي (Composite)</span><input type="checkbox" id="cCmp" checked onchange="draw()"></div>
-  <div class="row"><span>بروفايل الشمعة (Candle VP)</span><input type="checkbox" id="cCnd" onchange="draw()"></div>
-  <div class="row"><span>خطوط HVN و LVN</span><input type="checkbox" id="cHL" checked onchange="draw()"></div>
-  <div class="row"><span>عدد الصفوف (Bins)</span><input type="number" id="cBin" value="35" onchange="draw()"></div>
-  <div class="row"><span>منطقة المزاد %</span><input type="number" id="cVA" value="70" onchange="draw()"></div>
-  <div class="sec">2. الفقاعات (Volume Bubbles)</div>
-  <div class="row"><span>تفعيل الببلس</span><input type="checkbox" id="cBub" checked onchange="draw()"></div>
-  <div class="row"><span>حجم العقد (Trade Size)</span><input type="number" id="cTS" value="5" onchange="draw()"></div>
-  <div class="row"><span>إظهار الأرقام</span><input type="checkbox" id="cBN" onchange="draw()"></div>
-  <div class="sec">3. الفوت برنت والدلتا</div>
-  <div class="row"><span>فوت برنت (Bid x Ask)</span><input type="checkbox" id="cFP" checked onchange="draw()"></div>
-  <div class="row"><span>تجميع السعر (Tick Step)</span><input type="number" id="cStp" value="0.5" step="0.0005" onchange="draw()"></div>
-  <div class="row"><span>عدم التوازن %</span><input type="number" id="cImb" value="300" onchange="draw()"></div>
-  <div class="row"><span>إطار Bar POC</span><input type="checkbox" id="cPOC" checked onchange="draw()"></div>
-  <div class="row"><span>دلتا الشموع (Bar Delta)</span><input type="checkbox" id="cBD" checked onchange="draw()"></div>
-  <div class="row"><span>مؤشر CVD</span><input type="checkbox" id="cCVD" checked onchange="draw()"></div>
+  <div class="row"><span>فقاعات الصفقات (Bubbles)</span><input type="checkbox" id="cBub" checked onchange="draw()"></div>
+  <div class="row"><span>حجم العقد (Trade Size)</span><input type="number" id="cTS" value="2" onchange="draw()"></div>
+  <div class="row"><span>مؤشر الدلتا التراكمية (CVD)</span><input type="checkbox" id="cCVD" checked onchange="draw()"></div>
+  <div class="sec">إعدادات الحساب التجريبي</div>
+  <div class="row"><span>حجم العقد للتداول (Lot)</span><input type="number" id="lotSz" value="1" step="0.5"></div>
 </div></div>
 <script>
 const c=document.getElementById('c'),x=c.getContext('2d');
-let bars=[],ws=null,rep=0,tmr=null,off=0,vis=36,md=0,vp1=null,vp2=null,inds=[],edId=null,dx0=null;
+let bars=[],ws=null,rep=0,tmr=null,off=0,vis=38,tool='NONE',p1=null,dx0=null;
+let drawings=[],alerts=[],vpRange=null,inds=[],edId=null;
+let acc={bal:10000,pos:null,trades:[],eq:[10000]};
+
 const prs={
-  vwap:{n:"VWAP Bands",c:"let pv=0,v=0,p2=0,pts=[];candles.forEach((b,i)=>{let t=(b.h+b.l+b.c)/3;pv+=t*b.v;v+=b.v;p2+=t*t*b.v;let w=v>0?pv/v:b.c,s=Math.sqrt(v>0?Math.max(0,p2/v-w*w):0);pts.push({x:i*sx+sx/2,v:w,u:w+s*1.5,l:w-s*1.5})});['v','u','l'].forEach((k,j)=>{x.strokeStyle=j?'rgba(224,64,251,.4)':'#e040fb';x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p.x,p2y(p[k])):x.moveTo(p.x,p2y(p[k])));x.stroke()});"},
-  abs:{n:"Absorption",c:"let av=candles.reduce((s,b)=>s+b.v,0)/Math.max(1,candles.length);candles.forEach((b,i)=>{let bd=Math.abs(b.c-b.o),rg=b.h-b.l;if(b.v>av*1.8&&rg>0&&bd/rg<.3){let bt=b.c>(b.h+b.l)/2;x.fillStyle=bt?'#00e676':'#ff2e63';x.fillText(bt?'▲':'▼',i*sx+sx/2-4,bt?p2y(b.l)+12:p2y(b.h)-4)}});"},
+  vwap:{n:"VWAP",c:"let pv=0,v=0;x.strokeStyle='#e040fb';x.lineWidth=1.5;x.beginPath();candles.forEach((b,i)=>{let t=(b.h+b.l+b.c)/3;pv+=t*b.v;v+=b.v;let w=v>0?pv/v:b.c;i?x.lineTo(i*sx+sx/2,p2y(w)):x.moveTo(i*sx+sx/2,p2y(w))});x.stroke();"},
   ema:{n:"EMA 20/50",c:"[[20,'#00bcd4'],[50,'#ff9800']].forEach(([l,cl])=>{let k=2/(l+1),e=candles.c;x.strokeStyle=cl;x.beginPath();candles.forEach((b,i)=>{e=b.c*k+e*(1-k);i?x.lineTo(i*sx+sx/2,p2y(e)):x.moveTo(i*sx+sx/2,p2y(e))});x.stroke()});"},
-  lvl:{n:"Session H/L",c:"let hi=Math.max(...candles.map(b=>b.h)),lo=Math.min(...candles.map(b=>b.l));x.strokeStyle='#00e676';x.beginPath();x.moveTo(0,p2y(hi));x.lineTo(candles.length*sx,p2y(hi));x.stroke();x.strokeStyle='#ff2e63';x.beginPath();x.moveTo(0,p2y(lo));x.lineTo(candles.length*sx,p2y(lo));x.stroke();"}
+  abs:{n:"Absorption",c:"let av=candles.reduce((s,b)=>s+b.v,0)/Math.max(1,candles.length);candles.forEach((b,i)=>{let bd=Math.abs(b.c-b.o),rg=b.h-b.l;if(b.v>av*1.8&&rg>0&&bd/rg<.3){let bt=b.c>(b.h+b.l)/2;x.fillStyle=bt?'#00e676':'#ff2e63';x.fillText(bt?'▲':'▼',i*sx+sx/2-4,bt?p2y(b.l)+12:p2y(b.h)-4)}});"}
 };
+
 window.onload=()=>{
-  ['u','p'].forEach(k=>{if(localStorage.getItem(k))document.getElementById(k).value=localStorage.getItem(k)});
-  inds=JSON.parse(localStorage.getItem('inds')||'null')||[{id:1,n:prs.vwap.n,c:prs.vwap.c,on:true}];
-  rndI();rsz();init();
+  inds=JSON.parse(localStorage.getItem('inds2')||'null')||[{id:1,n:prs.vwap.n,c:prs.vwap.c,on:true}];
+  let svAcc=localStorage.getItem('demoAcc');if(svAcc)acc=JSON.parse(svAcc);
+  updAccUI();rsz();init();
 };
-function svC(){['u','p'].forEach(k=>localStorage.setItem(k,document.getElementById(k).value))}
-function openM(id){if(id=='scrM')rndI();document.getElementById(id).style.display='flex'}
+
+function openM(id){if(id=='scrM')rndI();if(id=='statM')rndStats();document.getElementById(id).style.display='flex'}
 function closeM(id){document.getElementById(id).style.display='none';draw()}
 function rsz(){c.width=c.parentElement.clientWidth;c.height=c.parentElement.clientHeight;draw()}
 window.onresize=rsz;
 function zm(f){vis=Math.max(8,Math.min(130,Math.round(vis/f)));off=Math.max(0,Math.min(rep-3,rep-vis));draw()}
-function rndI(){document.getElementById('iList').innerHTML=inds.map(i=>'<div class="item"><label><input type="checkbox" '+(i.on?'checked':'')+' onchange="togI('+i.id+')"> '+i.n+'</label><div><button onclick="edI('+i.id+')">✏️</button><button onclick="delI('+i.id+')" style="background:#f23645;border:0">🗑️</button></div></div>').join('')}
-function togI(id){let i=inds.find(a=>a.id==id);if(i){i.on=!i.on;svI()}}
-function edI(id){let i=inds.find(a=>a.id==id);if(i){edId=id;document.getElementById('iName').value=i.n;document.getElementById('iCode').value=i.c}}
-function delI(id){inds=inds.filter(a=>a.id!=id);svI()}
-function pre(k){edId=null;document.getElementById('iName').value=prs[k].n;document.getElementById('iCode').value=prs[k].c}
-function saveInd(){let n=document.getElementById('iName').value||'مؤشر',cd=document.getElementById('iCode').value;if(!cd)return;if(edId){let i=inds.find(a=>a.id==edId);if(i){i.n=n;i.c=cd;i.on=true}edId=null}else inds.push({id:Date.now(),n,c:cd,on:true});document.getElementById('iName').value='';document.getElementById('iCode').value='';svI()}
-function svI(){localStorage.setItem('inds',JSON.stringify(inds));rndI();draw()}
 
-function specs(s){
-  const m={GCZ6:{tk:.1,st:.5},SIZ6:{tk:.005,st:.025},HGZ6:{tk:.0005,st:.0025},NQZ6:{tk:.25,st:2},ESZ6:{tk:.25,st:1},YMZ6:{tk:1,st:5},RTYZ6:{tk:.1,st:.5},'6EZ6':{tk:.0001,st:.0005},'6BZ6':{tk:.0001,st:.0005},'6JZ6':{tk:.000001,st:.000005},'6AZ6':{tk:.0001,st:.0005},'6CZ6':{tk:.0001,st:.0005},'6SZ6':{tk:.0001,st:.0005},CLF7:{tk:.01,st:.05},NGF7:{tk:.001,st:.005}};
-  return m[s]||{tk:.1,st:.5};
+function rndI(){document.getElementById('iList').innerHTML=inds.map(i=>'<div class="item"><label><input type="checkbox" '+(i.on?'checked':'')+' onchange="togI('+i.id+')"> '+i.n+'</label><button onclick="delI('+i.id+')" style="background:#f23645;border:0">🗑️</button></div>').join('')}
+function togI(id){let i=inds.find(a=>a.id==id);if(i){i.on=!i.on;localStorage.setItem('inds2',JSON.stringify(inds));rndI();draw()}}
+function delI(id){inds=inds.filter(a=>a.id!=id);localStorage.setItem('inds2',JSON.stringify(inds));rndI();draw()}
+function pre(k){document.getElementById('iName').value=prs[k].n;document.getElementById('iCode').value=prs[k].c}
+function saveInd(){let n=document.getElementById('iName').value||'مؤشر',cd=document.getElementById('iCode').value;if(!cd)return;inds.push({id:Date.now(),n,c:cd,on:true});localStorage.setItem('inds2',JSON.stringify(inds));document.getElementById('iName').value='';document.getElementById('iCode').value='';rndI();draw()}
+
+function curPrice(){return bars.length&&rep>0?bars[rep-1].c:0}
+function fmtDate(ms){let d=new Date(ms);return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+
+function trade(side){
+  let p=curPrice();if(!p)return;
+  if(acc.pos)closePos();
+  let lot=parseFloat(document.getElementById('lotSz').value)||1;
+  let tm=bars[rep-1].t||Date.now();
+  acc.pos={side,entry:p,lot,time:fmtDate(tm)};
+  saveAcc();draw();
+}
+
+function closePos(){
+  if(!acc.pos)return;
+  let p=curPrice();if(!p)return;
+  let diff=acc.pos.side=='BUY'?(p-acc.pos.entry):(acc.pos.entry-p);
+  let sym=document.getElementById('sym').value;
+  let mult=sym.includes('EUR')||sym.includes('GBP')?10000:10;
+  let pnl=diff*acc.pos.lot*mult;
+  acc.bal+=pnl;acc.eq.push(acc.bal);
+  let tm=bars[rep-1].t||Date.now();
+  acc.trades.unshift({side:acc.pos.side,entry:acc.pos.entry,exit:p,pnl,time:acc.pos.time+' -> '+fmtDate(tm)});
+  acc.pos=null;saveAcc();draw();
+}
+
+function resetAccount(){acc={bal:10000,pos:null,trades:[],eq:[10000]};saveAcc();rndStats();draw()}
+function saveAcc(){localStorage.setItem('demoAcc',JSON.stringify(acc));updAccUI()}
+function updAccUI(){
+  let openPnl=0;
+  if(acc.pos&&curPrice()){
+    let diff=acc.pos.side=='BUY'?(curPrice()-acc.pos.entry):(acc.pos.entry-curPrice());
+    let sym=document.getElementById('sym').value;
+    openPnl=diff*acc.pos.lot*(sym.includes('EUR')||sym.includes('GBP')?10000:10);
+  }
+  let tot=acc.bal+openPnl;
+  let el=document.getElementById('pnlTxt');
+  el.innerText=tot.toFixed(1)+'$';
+  el.style.color=tot>=10000?'#00e676':'#ff2e63';
+}
+
+function rndStats(){
+  let wins=acc.trades.filter(t=>t.pnl>0).length,losses=acc.trades.filter(t=>t.pnl<=0).length,tot=acc.trades.length;
+  let wr=tot?((wins/tot)*100).toFixed(1):0;
+  document.getElementById('statSummary').innerHTML='<b>الرصيد الحالي:</b> '+acc.bal.toFixed(2)+'$ | <b>إجمالي الصفقات:</b> '+tot+'<br><span style="color:#00e676">الرابحة: '+wins+'</span> | <span style="color:#ff2e63">الخاسرة: '+losses+'</span> | <b>نسبة النجاح:</b> '+wr+'%';
+  document.getElementById('trLog').innerHTML=acc.trades.map(t=>'<tr><td style="color:'+(t.side=='BUY'?'#00e676':'#ff2e63')+'">'+t.side+'</td><td>'+t.entry.toFixed(2)+'</td><td>'+t.exit.toFixed(2)+'</td><td style="color:'+(t.pnl>=0?'#00e676':'#ff2e63')+'">'+t.pnl.toFixed(1)+'$</td><td>'+t.time+'</td></tr>').join('');
+  let ec=document.getElementById('eqC'),ex=ec.getContext('2d');ex.clearRect(0,0,ec.width,ec.height);
+  if(acc.eq.length>1){
+    let hi=Math.max(...acc.eq),lo=Math.min(...acc.eq);if(hi==lo){hi+=10;lo-=10}
+    ex.strokeStyle='#00bcd4';ex.lineWidth=2;ex.beginPath();
+    acc.eq.forEach((v,i)=>{let px=(i/(acc.eq.length-1))*ec.width,py=ec.height-10-((v-lo)/(hi-lo))*(ec.height-20);i?ex.lineTo(px,py):ex.moveTo(px,py)});
+    ex.stroke();
+  }
 }
 
 async function init(){
   stpP();if(ws){ws.close();ws=null}
-  let s=document.getElementById('sym').value,sp=specs(s);document.getElementById('cStp').value=sp.st;
-  let u=document.getElementById('u').value.trim(),p=document.getElementById('p').value.trim();
-  if(!u||!p){document.getElementById('st').innerText="اضغط ⚙️ الإعدادات للربط";return}
-  document.getElementById('st').innerText="اتصال بـ CME...";
+  let sym=document.getElementById('sym').value,tf=document.getElementById('tf').value;
+  document.getElementById('cStp').value=sym.includes('EUR')||sym.includes('GBP')?0.0005:(sym=='BTCUSDT'?15:0.5);
+  document.getElementById('st').innerText="جاري جلب البيانات...";
   try{
-    let r=await fetch('https://tradovateapi.com',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:u,password:p,appId:'Sample App',appVersion:'1.0',cid:8,sec:'9c30a5a8-0286-4551-9f31-183440196c87'})});
-    let d=await r.json();if(!d.mdAccessToken){document.getElementById('st').innerText="خطأ بالبيانات";return}
-    document.getElementById('st').innerText="متصل ("+s+")";bars=[];
-    ws=new WebSocket('wss://://tradovateapi.com');
-    ws.onopen=()=>{ws.send("authorize\n0\n\n"+d.mdAccessToken);ws.send('md/subscribeQuote\n1\n\n{"symbol":"'+s+'"}');ws.send('md/getChart\n2\n\n{"symbol":"'+s+'","chartDescription":{"underlyingType":"Tick","elementSize":1,"elementSizeUnit":"UnderlyingUnits"},"timeRange":{"asMuchAsElements":2000}}')};
-    ws.onmessage=e=>{if(e.data.startsWith('a'))JSON.parse(e.data.slice(1)).forEach(it=>{
-      if(it.d&&it.d.charts)it.d.charts.forEach(ch=>{if(ch.bars){ch.bars.forEach(b=>tick(b.close,(b.upVolume+b.downVolume)||1,b.close<b.open,new Date(b.timestamp).getTime(),0,sp.tk));rep=bars.length;off=Math.max(0,rep-vis);draw()}});
-      if(it.d&&it.d.quotes)it.d.quotes.forEach(q=>{if(q.entries&&q.entries.Trade)tick(q.entries.Trade.price,q.entries.Trade.size||1,q.entries.Bid&&q.entries.Trade.price<=q.entries.Bid.price,Date.now(),1,sp.tk)})
-    })};
-  }catch(e){document.getElementById('st').innerText="البورصة مغلقة حالياً"}
+    bars=[];
+    if(tf=='15s'||tf.startsWith('R')){
+      let r=await fetch('https://binance.com');
+      let d=await r.json();
+      d.forEach(t=>tick(parseFloat(t.p),parseFloat(t.q),t.m,t.T,0));
+    }else{
+      let r=await fetch('https://binance.com');
+      let d=await r.json();let cvd=0;
+      bars=d.map(k=>{
+        let v=parseFloat(k),bv=parseFloat(k),sv=v-bv,dl=bv-sv;cvd+=dl;
+        let o=parseFloat(k),h=parseFloat(k),l=parseFloat(k),cl=parseFloat(k);
+        let st=parseFloat(document.getElementById('cStp').value)||0.5,mid=(Math.round(((h+l)/2)/st)*st).toFixed(4);
+        let fp={};fp[mid]={b:sv,a:bv};
+        return {t:k,o,h,l,c:cl,v,d:dl,cvd,fp,tr:v>4?[{p:(h+l+cl)/3,q:v*.3,s:dl<0}]:[]};
+      });
+    }
+    rep=bars.length;off=Math.max(0,rep-vis);document.getElementById('st').innerText="متصل مباشر ("+tf+")";draw();
+    ws=new WebSocket('wss://://binance.com');
+    ws.onmessage=e=>{let m=JSON.parse(e.data);tick(parseFloat(m.p),parseFloat(m.q),m.m,m.T,1)};
+  }catch(e){document.getElementById('st').innerText="تعذر الاتصال"}
 }
 
-function tick(pr,qt,sl,tm,lv,tk){
-  let tf=document.getElementById('tf').value,st=parseFloat(document.getElementById('cStp').value)||tk,lvl=(Math.round(pr/st)*st).toFixed(5);
-  const tfMap={'5s':5000,'15s':15000,'30s':30000,'1m':60000,'3m':180000,'5m':300000,'15m':900000,'30m':1800000,'1h':3600000,'4h':14400000};
+function tick(pr,qt,sl,tm,lv){
+  let tf=document.getElementById('tf').value,st=parseFloat(document.getElementById('cStp').value)||0.5,lvl=(Math.round(pr/st)*st).toFixed(4);
+  const tfM={'15s':15000,'1m':60000,'5m':300000,'15m':900000,'1h':3600000};
   let b=bars.length?bars[bars.length-1]:null,nw=!b;
   if(b){
-    if(tfMap[tf]&&Math.floor(tm/tfMap[tf])*tfMap[tf]>b.t)nw=1;
-    else if(tf.startsWith('R')&&Math.abs(pr-b.o)>=parseInt(tf.slice(1))*tk)nw=1;
+    if(tfM[tf]&&Math.floor(tm/tfM[tf])*tfM[tf]>b.t)nw=1;
+    else if(tf.startsWith('R')&&Math.abs(pr-b.o)>=parseInt(tf.slice(1))*(st/5))nw=1;
   }
   if(nw){
-    let t0=tfMap[tf]?Math.floor(tm/tfMap[tf])*tfMap[tf]:tm;
+    let t0=tfM[tf]?Math.floor(tm/tfM[tf])*tfM[tf]:tm;
     b={t:t0,o:pr,h:pr,l:pr,c:pr,v:0,d:0,cvd:b?b.cvd:0,fp:{},tr:[]};bars.push(b);
     if(lv&&rep==bars.length-1){rep=bars.length;off=Math.max(0,rep-vis)}
   }
   b.h=Math.max(b.h,pr);b.l=Math.min(b.l,pr);b.c=pr;b.v+=qt;let dl=sl?-qt:qt;b.d+=dl;b.cvd+=dl;
   if(!b.fp[lvl])b.fp[lvl]={b:0,a:0};sl?b.fp[lvl].b+=qt:b.fp[lvl].a+=qt;b.tr.push({p:pr,q:qt,s:sl});
-  if(lv&&rep==bars.length)draw();
+  alerts.forEach(a=>{if(!a.hit&&Math.abs(pr-a.p)<=st){a.hit=1;triggerAlert(a.p)}});
+  if(lv&&rep==bars.length){updAccUI();draw()}
 }
-function setMode(m){stpP();md=m;if(m==1){vp1=vp2=null;document.getElementById('bVP').classList.add('act')}}
-function clrVP(){md=0;vp1=vp2=null;document.getElementById('bVP').classList.remove('act');draw()}
-function togPlay(){if(tmr){stpP();return}if(rep>=bars.length)rep=Math.max(15,bars.length-50);document.getElementById('bPlay').innerText="⏸️";tmr=setInterval(()=>{if(rep<bars.length){rep++;off=Math.max(0,rep-vis+4);draw()}else stpP()},parseInt(document.getElementById('spd').value))}
+
+function triggerAlert(p){
+  let bn=document.getElementById('alertBanner');bn.innerText="🔔 السعر وصل إلى: "+p.toFixed(2);bn.style.display='block';
+  setTimeout(()=>bn.style.display='none',4000);
+  try{let ac=new(window.AudioContext||window.webkitAudioContext)(),os=ac.createOscillator();os.connect(ac.destination);os.frequency.value=880;os.start();os.stop(ac.currentTime+0.3)}catch(e){}
+}
+function setTool(t){
+  stpP();tool=(tool==t?'NONE':t);p1=null;
+  ['tTrend','tHoriz','tBox','tVP','tAlert'].forEach(id=>document.getElementById(id).classList.remove('act'));
+  const map={TREND:'tTrend',HORIZ:'tHoriz',BOX:'tBox',VP:'tVP',ALERT:'tAlert'};
+  if(map[tool])document.getElementById(map[tool]).classList.add('act');
+}
+function clrDraw(){drawings=[];alerts=[];vpRange=null;setTool('NONE');draw()}
+function togPlay(){if(tmr){stpP();return}if(rep>=bars.length)rep=Math.max(15,bars.length-50);document.getElementById('bPlay').innerText="⏸️";tmr=setInterval(()=>{if(rep<bars.length){rep++;off=Math.max(0,rep-vis+4);updAccUI();draw()}else stpP()},parseInt(document.getElementById('spd').value))}
 function stpP(){clearInterval(tmr);tmr=null;document.getElementById('bPlay').innerText="▶️"}
-function step(){stpP();if(rep<bars.length){rep++;off=Math.max(0,rep-vis+4);draw()}}
-function rst(){stpP();rep=bars.length;off=Math.max(0,rep-vis);draw()}
+function step(){stpP();if(rep<bars.length){rep++;off=Math.max(0,rep-vis+4);updAccUI();draw()}}
+function rst(){stpP();rep=bars.length;off=Math.max(0,rep-vis);updAccUI();draw()}
+
+let lastScale={lo:0,hi:1,mh:100,sx:10};
+function y2p(y){return lastScale.lo+((lastScale.mh-y+8)/lastScale.mh)*(lastScale.hi-lastScale.lo)}
 
 c.onpointerdown=e=>{
-  let px=e.clientX-c.getBoundingClientRect().left,sx=(c.width-70)/vis,idx=Math.floor(off+px/sx);
-  if(md==3&&idx>5&&idx<bars.length){rep=idx;md=0;draw()}
-  else if(md==1&&idx<rep){vp1=idx;md=2}
-  else if(md==2&&idx<rep){vp2=Math.max(vp1+1,idx);md=0;document.getElementById('bVP').classList.remove('act');draw()}
-  else dx0=px;
+  let r=c.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top,idx=Math.floor(off+px/lastScale.sx),pr=y2p(py);
+  if(tool=='REPLAY'&&idx>5&&idx<bars.length){rep=idx;setTool('NONE');draw()}
+  else if(tool=='HORIZ'){drawings.push({type:'H',p:pr});setTool('NONE');draw()}
+  else if(tool=='ALERT'){alerts.push({p:pr,hit:0});setTool('NONE');draw()}
+  else if(tool=='TREND'||tool=='BOX'){
+    if(!p1){p1={idx,p:pr}}
+    else{drawings.push({type:tool,i1:p1.idx,p1:p1.p,i2:idx,p2:pr});p1=null;setTool('NONE');draw()}
+  }else if(tool=='VP'){
+    if(!p1){p1=idx}
+    else{vpRange=[Math.min(p1,idx),Math.max(p1+1,idx)];p1=null;setTool('NONE');draw()}
+  }else dx0=px;
 };
-c.onpointermove=e=>{if(dx0!==null&&!md){let px=e.clientX-c.getBoundingClientRect().left,sx=(c.width-70)/vis;if(Math.abs(px-dx0)>sx*.6){off=Math.max(0,Math.min(rep-5,off-Math.round((px-dx0)/sx)));dx0=px;draw()}}};
+c.onpointermove=e=>{if(dx0!==null&&tool=='NONE'){let px=e.clientX-c.getBoundingClientRect().left;if(Math.abs(px-dx0)>lastScale.sx*.6){off=Math.max(0,Math.min(rep-5,off-Math.round((px-dx0)/lastScale.sx)));dx0=px;draw()}}};
 c.onpointerup=()=>dx0=null;
 
-function drawVP(i1,i2,sx,p2y){
-  if(i1===null||i2===null||i2<=i1)return;let e2=Math.min(i2,rep-1);if(e2<=i1)return;
+function drawProfile(i1,i2,sx,p2y){
+  let e2=Math.min(i2,rep-1);if(e2<=i1)return;
   let sl=bars.slice(i1,e2+1),hi=-1e9,lo=1e9;sl.forEach(b=>{if(b.h>hi)hi=b.h;if(b.l<lo)lo=b.l});if(hi<=lo)return;
-  let bn=parseInt(document.getElementById('cBin').value)||35,va=(parseFloat(document.getElementById('cVA').value)||70)/100,rs=(hi-lo)/bn;
-  let ta=Array(bn).fill(0),da=Array(bn).fill(0),tv=0;
+  let bn=35,rs=(hi-lo)/bn,ta=Array(bn).fill(0),da=Array(bn).fill(0),tv=0;
   sl.forEach(b=>{let s0=Math.max(0,Math.floor((b.l-lo)/rs)),s1=Math.min(bn-1,Math.floor((b.h-lo)/rs)),cn=Math.max(1,s1-s0+1);for(let r=s0;r<=s1;r++){ta[r]+=b.v/cn;da[r]+=b.d/cn;tv+=b.v/cn}});
   let mt=Math.max(...ta),md2=Math.max(...da.map(Math.abs)),poc=ta.indexOf(mt),vh=poc,vl=poc,cv=mt;
-  while(cv<tv*va&&(vh<bn-1||vl>0)){let uv=vh<bn-1?ta[vh+1]:0,dv=vl>0?ta[vl-1]:0;if(uv>=dv&&vh<bn-1){vh++;cv+=uv}else if(vl>0){vl--;cv+=dv}else break}
+  while(cv<tv*.7&&(vh<bn-1||vl>0)){let uv=vh<bn-1?ta[vh+1]:0,dv=vl>0?ta[vl-1]:0;if(uv>=dv&&vh<bn-1){vh++;cv+=uv}else if(vl>0){vl--;cv+=dv}else break}
   let ax=(i1-off)*sx+sx/2,ex=(e2-off)*sx+sx/2;
   for(let r=0;r<bn;r++){
     let yt=p2y(lo+(r+1)*rs),yb=p2y(lo+r*rs),bh=Math.max(1,yb-yt-1);
-    if(mt>0&&ta[r]>0){x.fillStyle=(r>=vl&&r<=vh)?'rgba(41,98,255,.55)':'rgba(41,98,255,.2)';x.fillRect(ax,yt,(ta[r]/mt)*65,bh)}
-    if(md2>0&&da[r]){x.fillStyle=da[r]>0?'rgba(0,230,118,.65)':'rgba(255,46,99,.65)';x.fillRect(ax-(Math.abs(da[r])/md2)*65,yt,(Math.abs(da[r])/md2)*65,bh)}
-    if(document.getElementById('cHL').checked&&r>1&&r<bn-2&&r!=poc&&ta[r]>0){
-      let ym=(yt+yb)/2;
-      if(ta[r]>ta[r-1]*1.15&&ta[r]>ta[r+1]*1.15&&ta[r]>mt*.45){x.strokeStyle='rgba(0,188,212,.45)';x.beginPath();x.moveTo(ax,ym);x.lineTo(ex,ym);x.stroke()}
-      if(ta[r]<ta[r-1]*.7&&ta[r]<ta[r+1]*.7){x.strokeStyle='rgba(255,152,0,.45)';x.setLineDash();x.beginPath();x.moveTo(ax,ym);x.lineTo(ex,ym);x.stroke();x.setLineDash([])}
-    }
+    if(mt>0&&ta[r]>0){x.fillStyle=(r>=vl&&r<=vh)?'rgba(41,98,255,.5)':'rgba(41,98,255,.2)';x.fillRect(ax,yt,(ta[r]/mt)*60,bh)}
+    if(md2>0&&da[r]){x.fillStyle=da[r]>0?'rgba(0,230,118,.6)':'rgba(255,46,99,.6)';x.fillRect(ax-(Math.abs(da[r])/md2)*60,yt,(Math.abs(da[r])/md2)*60,bh)}
   }
   x.lineWidth=2;x.strokeStyle='#ffd700';x.beginPath();x.moveTo(ax,p2y(lo+(poc+.5)*rs));x.lineTo(ex,p2y(lo+(poc+.5)*rs));x.stroke();
   x.lineWidth=1;x.strokeStyle='rgba(255,255,255,.7)';[p2y(lo+(vh+1)*rs),p2y(lo+vl*rs)].forEach(y=>{x.beginPath();x.moveTo(ax,y);x.lineTo(ex,y);x.stroke()});
@@ -214,54 +280,88 @@ function drawVP(i1,i2,sx,p2y){
 
 function draw(){
   x.clearRect(0,0,c.width,c.height);if(!bars.length)return;
-  let sCVD=document.getElementById('cCVD').checked,sBD=document.getElementById('cBD').checked,w=c.width-70,mh=c.height-15-(sCVD?c.height*.16:0)-(sBD?22:0);
+  let sCVD=document.getElementById('cCVD').checked,w=c.width-58,mh=c.height-26-(sCVD?c.height*.16:0);
   let sl=bars.slice(off,Math.min(rep,off+vis));if(!sl.length)return;
   let hi=-1e9,lo=1e9;sl.forEach(b=>{if(b.h>hi)hi=b.h;if(b.l<lo)lo=b.l});let pd=(hi-lo)*.08;hi+=pd;lo-=pd;
   let p2y=p=>mh-((p-lo)/(hi-lo))*mh+8,sx=w/vis;
+  lastScale={lo,hi,mh,sx};
 
-  x.strokeStyle='#161b22';x.fillStyle='#787b86';x.font='10px sans-serif';
+  x.strokeStyle='#161b22';x.fillStyle='#8b949e';x.font='10px sans-serif';
   for(let i=0;i<=5;i++){let p=lo+((hi-lo)/5)*i,y=p2y(p);x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke();x.fillText(p.toFixed(2),w+4,y+3)}
 
-  if(document.getElementById('cSes').checked&&rep>10)drawVP(Math.max(0,rep-50),rep-1,sx,p2y);
-  drawVP(vp1,vp2,sx,p2y);
-  if(document.getElementById('cCmp').checked){
-    let bn=35,rs=(hi-lo)/bn,ta=Array(bn).fill(0);
-    sl.forEach(b=>{let s0=Math.max(0,Math.floor((b.l-lo)/rs)),s1=Math.min(bn-1,Math.floor((b.h-lo)/rs));for(let r=s0;r<=s1;r++)ta[r]+=b.v/Math.max(1,s1-s0+1)});
-    let mt=Math.max(...ta),poc=ta.indexOf(mt);
-    for(let r=0;r<bn;r++)if(mt>0&&ta[r]>0){let bw=(ta[r]/mt)*40;x.fillStyle=r==poc?'rgba(255,215,0,.5)':'rgba(120,123,134,.3)';x.fillRect(w-bw,p2y(lo+(r+1)*rs),bw,Math.max(1,p2y(lo+r*rs)-p2y(lo+(r+1)*rs)-1))}
-  }
+  if(document.getElementById('cSes').checked&&rep>10)drawProfile(Math.max(0,rep-50),rep-1,sx,p2y);
+  if(vpRange)drawProfile(vpRange,vpRange,sx,p2y);
 
-  let sBub=document.getElementById('cBub').checked,sBN=document.getElementById('cBN').checked,ts=parseFloat(document.getElementById('cTS').value)||5;
-  let sFP=document.getElementById('cFP').checked&&sx>=22,sCVP=document.getElementById('cCnd').checked&&sx>=16,imb=(parseFloat(document.getElementById('cImb').value)||300)/100;
+  let style=document.getElementById('cStyle').value;
+  let colBull=document.getElementById('colBull').value,colBear=document.getElementById('colBear').value;
+  let maxVol=Math.max(...sl.map(b=>b.v))||1;
+  let imb=(parseFloat(document.getElementById('cImb').value)||300)/100;
+
+  if(style=='LINE'){
+    x.strokeStyle='#2962ff';x.lineWidth=parseInt(document.getElementById('lineW').value)||2;x.beginPath();
+    sl.forEach((b,i)=>{let cx=i*sx+sx/2,cy=p2y(b.c);i?x.lineTo(cx,cy):x.moveTo(cx,cy)});
+    x.stroke();x.lineWidth=1;
+  }
 
   sl.forEach((b,i)=>{
     let cx=i*sx+sx/2,yo=p2y(b.o),yc=p2y(b.c),yh=p2y(b.h),yl=p2y(b.l),bl=b.c>=b.o;
-    x.strokeStyle=bl?'#089981':'#f23645';x.fillStyle=sFP?(bl?'rgba(8,153,129,.2)':'rgba(242,54,69,.2)'):(bl?'#089981':'#f23645');
-    x.beginPath();x.moveTo(cx,yh);x.lineTo(cx,yl);x.stroke();
-    let bw=sFP?sx*.85:sx*.55;x.fillRect(cx-bw/2,Math.min(yo,yc),bw,Math.max(1,Math.abs(yc-yo)));
-
-    let ks=Object.keys(b.fp);
-    if(ks.length){
-      let mv=0,pk=null;ks.forEach(k=>{let t=b.fp[k].b+b.fp[k].a;if(t>mv){mv=t;pk=k}});
-      if(sCVP&&mv>0)ks.forEach(k=>{let yl2=p2y(parseFloat(k)),w2=((b.fp[k].b+b.fp[k].a)/mv)*(sx*.45);x.fillStyle=k==pk?'rgba(255,215,0,.6)':'rgba(41,98,255,.4)';x.fillRect(cx-sx*.45,yl2-2,w2,4)});
-      if(sFP){
+    if(i%Math.max(1,Math.floor(vis/5))==0&&b.t){
+      let dt=new Date(b.t),ts=String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
+      x.fillStyle='#787b86';x.fillText(ts,cx-12,mh+18);
+    }
+    if(style!='LINE'){
+      x.strokeStyle=bl?colBull:colBear;
+      x.fillStyle=style=='FP'?(bl?'rgba(8,153,129,.2)':'rgba(242,54,69,.2)'):(bl?colBull:colBear);
+      x.beginPath();x.moveTo(cx,yh);x.lineTo(cx,yl);x.stroke();
+      let bw=style=='VOLC'?Math.max(3,(b.v/maxVol)*(sx*.95)):(style=='FP'?sx*.88:sx*.58);
+      x.fillRect(cx-bw/2,Math.min(yo,yc),bw,Math.max(1,Math.abs(yc-yo)));
+    }
+    if(style=='FP'&&sx>=20){
+      let ks=Object.keys(b.fp);
+      if(ks.length){
+        let mv=0,pk=null;ks.forEach(k=>{let t=b.fp[k].b+b.fp[k].a;if(t>mv){mv=t;pk=k}});
         x.font='9px monospace';
         ks.forEach(k=>{
           let yl2=p2y(parseFloat(k)),bd=b.fp[k].b,ak=b.fp[k].a;
-          if(document.getElementById('cPOC').checked&&k==pk){x.strokeStyle='#ffd700';x.strokeRect(cx-bw/2,yl2-6,bw,12)}
+          if(k==pk){x.strokeStyle='#ffd700';x.strokeRect(cx-sx*.42,yl2-6,sx*.84,12)}
           x.fillStyle=(ak>0&&bd>=ak*imb)?'#ff2e63':'#d1d4dc';x.textAlign='right';x.fillText(Math.round(bd),cx-2,yl2+3);
           x.fillStyle=(bd>0&&ak>=bd*imb)?'#00e676':'#d1d4dc';x.textAlign='left';x.fillText(Math.round(ak),cx+2,yl2+3);
         });x.textAlign='start';
       }
     }
-    if(sBub)b.tr.forEach(t=>{if(t.q>=ts){let r=Math.min(18,Math.max(5,(t.q/ts)*4)),by=p2y(t.p);x.beginPath();x.arc(cx,by,r,0,6.28);x.fillStyle=t.s?'rgba(255,46,99,.45)':'rgba(0,230,118,.45)';x.fill();x.strokeStyle=t.s?'#ff2e63':'#00e676';x.stroke();if(sBN){x.fillStyle='#fff';x.textAlign='center';x.fillText(Math.round(t.q),cx,by+3);x.textAlign='start'}}});
-    if(sBD){let bt=mh+6;x.fillStyle=b.d>=0?'rgba(0,230,118,.25)':'rgba(255,46,99,.25)';x.fillRect(cx-sx*.45,bt,sx*.9,15);if(sx>=18){x.fillStyle=b.d>=0?'#00e676':'#ff2e63';x.textAlign='center';x.fillText(Math.round(b.d),cx,bt+11);x.textAlign='start'}}
+    if(document.getElementById('cBub').checked){
+      let ts=parseFloat(document.getElementById('cTS').value)||2;
+      b.tr.forEach(t=>{if(t.q>=ts){let r=Math.min(18,Math.max(5,(t.q/ts)*4)),by=p2y(t.p);x.beginPath();x.arc(cx,by,r,0,6.28);x.fillStyle=t.s?'rgba(255,46,99,.45)':'rgba(0,230,118,.45)';x.fill();x.strokeStyle=t.s?'#ff2e63':'#00e676';x.stroke()}});
+    }
   });
 
-  inds.forEach(ind=>{if(ind.on)try{new Function('candles','x','p2y','sx',ind.c)(sl,x,p2y,sx)}catch(e){document.getElementById('sErr').innerText=e.message}});
+  drawings.forEach(d=>{
+    x.strokeStyle='#ffd700';x.lineWidth=1.5;
+    if(d.type=='H'){let y=p2y(d.p);x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke()}
+    else if(d.type=='TREND'){x.beginPath();x.moveTo((d.i1-off)*sx+sx/2,p2y(d.p1));x.lineTo((d.i2-off)*sx+sx/2,p2y(d.p2));x.stroke()}
+    else if(d.type=='BOX'){let x1=(d.i1-off)*sx+sx/2,x2=(d.i2-off)*sx+sx/2,y1=p2y(d.p1),y2=p2y(d.p2);x.fillStyle='rgba(41,98,255,.22)';x.fillRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1));x.strokeRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1))}
+    x.lineWidth=1;
+  });
+
+  alerts.forEach(a=>{
+    let y=p2y(a.p);x.strokeStyle='#ff9800';x.setLineDash([4,4]);x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke();x.setLineDash([]);
+    x.fillStyle='#ff9800';x.fillText('🔔 '+a.p.toFixed(2),6,y-3);
+  });
+
+  if(acc.pos){
+    let y=p2y(acc.pos.entry);x.strokeStyle=acc.pos.side=='BUY'?'#00e676':'#ff2e63';x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke();
+    x.fillStyle=acc.pos.side=='BUY'?'#00e676':'#ff2e63';x.fillText(acc.pos.side+' @ '+acc.pos.entry.toFixed(2),8,y-4);
+  }
+
+  let lp=curPrice();
+  if(lp){
+    let ly=p2y(lp);x.fillStyle='#2962ff';x.fillRect(w+1,ly-8,56,16);x.fillStyle='#fff';x.fillText(lp.toFixed(2),w+4,ly+4);
+  }
+
+  inds.forEach(ind=>{if(ind.on)try{new Function('candles','x','p2y','sx',ind.c)(sl,x,p2y,sx)}catch(e){}});
 
   if(sCVD){
-    let ct=mh+(sBD?26:10),ch=c.height-ct-5;x.strokeStyle='#2a2e39';x.beginPath();x.moveTo(0,ct);x.lineTo(c.width,ct);x.stroke();
+    let ct=mh+24,ch=c.height-ct-4;x.strokeStyle='#2a2e39';x.beginPath();x.moveTo(0,ct);x.lineTo(c.width,ct);x.stroke();
     let chi=-1e9,clo=1e9;sl.forEach(b=>{if(b.cvd>chi)chi=b.cvd;if(b.cvd<clo)clo=b.cvd});
     if(chi>clo){x.strokeStyle='#00bcd4';x.beginPath();sl.forEach((b,i)=>{let px=i*sx+sx/2,py=ct+ch-((b.cvd-clo)/(chi-clo))*ch;i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();x.fillStyle='#00bcd4';x.fillText("CVD",5,ct+11)}
   }
