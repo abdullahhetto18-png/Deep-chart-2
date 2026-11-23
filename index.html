@@ -110,8 +110,7 @@ table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}th,td{bo
 const c=document.getElementById('c'),x=c.getContext('2d');
 let bars=[],ws=null,rep=0,tmr=null,off=0,vis=38,tool='NONE',p1=null,dx0=null,simTimer=null;
 let drawings=[],alerts=[],vpRange=null,inds=[],curSym='GCZ6',watchlist=['GCZ6','NQZ6','ESZ6','6EZ6','CLF7'];
-let acc={bal:10000,pos:null,trades:[],eq:};
-
+let acc={bal:10000,pos:null,trades:[],eq:new Array(1).fill(10000)};
 const symDB=[
   {s:'GCZ6',n:'الذهب الآجل (Gold Futures)',tk:0.1,st:0.5,m:100,b:2655},
   {s:'MGCZ6',n:'الذهب المصغر (Micro Gold)',tk:0.1,st:0.5,m:10,b:2655},
@@ -215,7 +214,7 @@ function closePos(){
   acc.pos=null;saveAcc();draw();
 }
 
-function resetAccount(){acc={bal:10000,pos:null,trades:[],eq:[10000]};saveAcc();rndStats();draw()}
+function resetAccount(){acc={bal:10000,pos:null,trades:[],eq:new Array(1).fill(10000)};saveAcc();rndStats();draw()}
 function saveAcc(){localStorage.setItem('demoAcc',JSON.stringify(acc));updAccUI()}
 function updAccUI(){
   let openPnl=0;
