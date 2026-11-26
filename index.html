@@ -582,7 +582,7 @@ function draw(){
   if(vpRange)drawVP(vpRange.at(0),vpRange.at(1),sx,p2y);
 
   if(hasInd('CMP_VP')){
-    let bn=32,rs=(hi-lo)/bn,ta=new Array(bn).fill(0);
+    for(let r=s0;r<=s1;r++)ta[r]+=b.v/Math.max(1,s1-s0+1)
     sl.forEach(b=>{let s0=Math.max(0,Math.floor((b.l-lo)/rs)),s1=Math.min(bn-1,Math.floor((b.h-lo)/rs));for(let r=s0;r<=s1;r++)ta[r]+=b.v/Math.max(1,s1-s0+1)});
     let mt=Math.max(...ta),poc=ta.indexOf(mt);
     for(let r=0;r<bn;r++)if(mt>0&&ta.at(r)>0){let bw=(ta.at(r)/mt)*36;x.fillStyle=r==poc?'rgba(255,215,0,.5)':'rgba(120,123,134,.3)';x.fillRect(w-bw,p2y(lo+(r+1)*rs),bw,Math.max(1,p2y(lo+r*rs)-p2y(lo+(r+1)*rs)-1))}
