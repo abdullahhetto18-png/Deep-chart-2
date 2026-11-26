@@ -83,13 +83,12 @@ table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}th,td{bo
     <option value="BARDELTA">DeepCharts: جدول دلتا كل شمعة (Bar Delta Table)</option>
     <option value="CVD">DeepCharts: مؤشر الدلتا التراكمية (CVD)</option>
     <option value="VWAP">مؤسسي: خط VWAP + الانحراف المعياري</option>
-    <option value="EMA">فني: متوسطات EMA 20 / 50 / 200</option>
+    <option value="EMA">فني: متوسطات EMA 20 / 50</option>
     <option value="BB">فني: البولنجر باند (Bollinger Bands)</option>
-    <option value="SUPER">فني: مؤشر السوبر ترند (Supertrend)</option>
     <option value="PIVOT">فني: نقاط البيفوت (Pivot Points)</option>
     <option value="RSI">فني: مؤشر القوة النسبية (RSI 14)</option>
   </select><button class="buy" onclick="addIndFromList()">+ إضافة</button></div>
-  <div class="sec">الأدوات والمؤشرات النشطة حالياً (حذف أو تخصيص)</div>
+  <div class="sec">الأدوات والمؤشرات النشطة حالياً</div>
   <div id="activeIndList"></div>
 </div></div>
 
@@ -122,13 +121,14 @@ table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}th,td{bo
   <div class="row"><span>وقف الخسارة (SL Price):</span><input type="number" id="slPrice" placeholder="اختياري" step="0.0001"></div>
   <div class="row"><span>جني الأرباح (TP Price):</span><input type="number" id="tpPrice" placeholder="اختياري" step="0.0001"></div>
   <div style="display:flex;gap:6px;margin-top:8px">
+    <button class="buy" style="flex:1;padding:9px" onclick="execOrder('BUY')">🟢 شراء (BUY)</button>
 <script>
 const c=document.getElementById('c'),x=c.getContext('2d');
-let bars=[],rep=0,tmr=null,off=0.0,vis=40.0,tool='NONE',p1=null,simTimer=null;
-let curSym='GCZ6',watchlist=['GCZ6','NQZ6','ESZ6','6EZ6','CLF7'],vpRange=null;
-let acc={cap:10000,bal:10000,pos:null,trades:[],eq:[10000]};
+let bars=new Array(),rep=0,tmr=null,off=0.0,vis=40.0,tool='NONE',p1=null,simTimer=null;
+let curSym='GCZ6',watchlist=new Array('GCZ6','NQZ6','ESZ6','6EZ6','CLF7'),vpRange=null;
+let acc={cap:10000,bal:10000,pos:null,trades:new Array(),eq:new Array(1).fill(10000)};
 
-const symDB=[
+const symDB=new Array(
   {s:'GCZ6',n:'الذهب الآجل (Gold)',tk:0.1,st:0.5,m:100,b:2655},
   {s:'MGCZ6',n:'الذهب المصغر (Micro Gold)',tk:0.1,st:0.5,m:10,b:2655},
   {s:'SIZ6',n:'الفضة الآجل (Silver)',tk:0.005,st:0.025,m:5000,b:31.40},
@@ -140,25 +140,25 @@ const symDB=[
   {s:'6BZ6',n:'الباوند الآجل (GBP/USD)',tk:0.0001,st:0.0005,m:62500,b:1.2640},
   {s:'6JZ6',n:'الين الياباني (JPY/USD)',tk:0.000001,st:0.000005,m:12500000,b:0.00648},
   {s:'CLF7',n:'النفط الخام (WTI Crude)',tk:0.01,st:0.05,m:1000,b:69.40}
-];
+);
 
-let activeInds=[
+let activeInds=new Array(
   {id:'SES_VP',n:'بروفايل الجلسة المنقسم (Split Session VP)',on:true},
   {id:'CMP_VP',n:'البروفايل التراكمي (Composite VP)',on:true},
   {id:'BUBBLES',n:'فقاعات الصفقات الكبيرة (Volume Bubbles)',on:true},
   {id:'BARDELTA',n:'جدول دلتا كل شمعة (Bar Delta)',on:true},
   {id:'CVD',n:'مؤشر الدلتا التراكمية (CVD)',on:true},
   {id:'VWAP',n:'خط VWAP + الانحراف المعياري',on:true}
-];
+);
 
-const allDrawTools=[
+const allDrawTools=new Array(
   {id:'HORIZ',n:'➖ خط أفقي'},{id:'TREND',n:'📏 خط ترند'},{id:'BOX',n:'⬜ مستطيل منطقة'},
   {id:'FIB',n:'📐 فيبوناتشي'},{id:'VP',n:'📊 بروفايل حر'}
-];
-let favTools=['HORIZ','TREND','BOX','FIB','VP'];
+);
+let favTools=new Array('HORIZ','TREND','BOX','FIB','VP');
 
-function lastB(){return bars.length?bars[bars.length-1]:null}
-function curPrice(){return (bars.length&&rep>0)?bars[rep-1].c:0}
+function lastB(){return bars.length?bars.at(-1):null}
+function curPrice(){return (bars.length&&rep>0)?bars.at(rep-1).c:0}
 function getSpec(){return symDB.find(x=>x.s==curSym)||{s:curSym,tk:0.1,st:0.5,m:10,b:1000}}
 function fmtDate(ms){let d=new Date(ms);return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
 
@@ -172,7 +172,6 @@ window.onload=function(){
   let sa=localStorage.getItem('ultAcc');if(sa)acc=JSON.parse(sa);
   rndFavBar();updAccUI();rsz();init();
 };
-
 function openM(id){
   if(id=='indM')rndIndMgr();
   if(id=='drawSetM')rndFavCfg();
@@ -205,10 +204,10 @@ function rndIndMgr(){
   document.getElementById('activeIndList').innerHTML=activeInds.map((ind,i)=>'<div class="item"><label><input type="checkbox" '+(ind.on?'checked':'')+' onchange="togInd('+i+')"> '+ind.n+'</label><button onclick="delInd('+i+')" style="background:#f23645;border:0">حذف</button></div>').join('');
 }
 function addIndFromList(){
-  let sel=document.getElementById('addIndSel'),id=sel.value,n=sel.options[sel.selectedIndex].text;
+  let sel=document.getElementById('addIndSel'),id=sel.value,n=sel.options.item(sel.selectedIndex).text;
   activeInds.push({id,n,on:true});localStorage.setItem('actInds',JSON.stringify(activeInds));rndIndMgr();reqDraw();
 }
-function togInd(i){activeInds[i].on=!activeInds[i].on;localStorage.setItem('actInds',JSON.stringify(activeInds));reqDraw()}
+function togInd(i){activeInds.at(i).on=!activeInds.at(i).on;localStorage.setItem('actInds',JSON.stringify(activeInds));reqDraw()}
 function delInd(i){activeInds.splice(i,1);localStorage.setItem('actInds',JSON.stringify(activeInds));rndIndMgr();reqDraw()}
 
 function compileCustomInd(){
@@ -230,7 +229,7 @@ function delSavedDrw(i){let dr=getSavedDrawings();dr.splice(i,1);saveDrawings(dr
 
 function setCap(){
   let v=parseFloat(document.getElementById('initCap').value);if(!v||v<=0)return;
-  acc={cap:v,bal:v,pos:null,trades:[],eq:[v]};saveAcc();reqDraw();
+  acc={cap:v,bal:v,pos:null,trades:new Array(),eq:new Array(1).fill(v)};saveAcc();reqDraw();
 }
 function execOrder(side){
   let p=curPrice();if(!p)return;
@@ -238,7 +237,7 @@ function execOrder(side){
   let lot=parseFloat(document.getElementById('lotSz').value)||1;
   let sl=parseFloat(document.getElementById('slPrice').value)||null;
   let tp=parseFloat(document.getElementById('tpPrice').value)||null;
-  acc.pos={side,entry:p,lot,sl,tp,time:fmtDate(bars[rep-1].t||Date.now())};
+  acc.pos={side,entry:p,lot,sl,tp,time:fmtDate(bars.at(rep-1).t||Date.now())};
   saveAcc();closeM('trdM');reqDraw();
 }
 function closePos(execP){
@@ -247,7 +246,7 @@ function closePos(execP){
   let diff=acc.pos.side=='BUY'?(p-acc.pos.entry):(acc.pos.entry-p);
   let pnl=diff*acc.pos.lot*getSpec().m;
   acc.bal+=pnl;acc.eq.push(acc.bal);
-  acc.trades.unshift({side:acc.pos.side,entry:acc.pos.entry,exit:p,pnl,time:acc.pos.time+' -> '+fmtDate(bars[rep-1].t||Date.now())});
+  acc.trades.unshift({side:acc.pos.side,entry:acc.pos.entry,exit:p,pnl,time:acc.pos.time+' -> '+fmtDate(bars.at(rep-1).t||Date.now())});
   acc.pos=null;saveAcc();reqDraw();
 }
 function saveAcc(){localStorage.setItem('ultAcc',JSON.stringify(acc));updAccUI()}
@@ -267,7 +266,7 @@ function rndStats(){
   document.getElementById('trLog').innerHTML=acc.trades.map(t=>'<tr><td style="color:'+(t.side=='BUY'?'#00e676':'#ff2e63')+'">'+t.side+'</td><td>'+t.entry.toFixed(2)+'</td><td>'+t.exit.toFixed(2)+'</td><td style="color:'+(t.pnl>=0?'#00e676':'#ff2e63')+'">'+t.pnl.toFixed(1)+'$</td><td>'+t.time+'</td></tr>').join('');
   let ec=document.getElementById('eqC'),ex=ec.getContext('2d');ex.clearRect(0,0,ec.width,ec.height);
   if(acc.eq.length>1){
-    let hi=Math.max.apply(null,acc.eq),lo=Math.min.apply(null,acc.eq);if(hi==lo){hi+=10;lo-=10}
+    let hi=Math.max(...acc.eq),lo=Math.min(...acc.eq);if(hi==lo){hi+=10;lo-=10}
     ex.strokeStyle='#00bcd4';ex.lineWidth=2;ex.beginPath();
     acc.eq.forEach((v,i)=>{let px=(i/(acc.eq.length-1))*ec.width,py=ec.height-10-((v-lo)/(hi-lo))*(ec.height-20);i?ex.lineTo(px,py):ex.moveTo(px,py)});
     ex.stroke();
@@ -278,7 +277,7 @@ function askAI(){
   let inp=document.getElementById('aiInput'),q=inp.value.trim();if(!q)return;inp.value='';
   let log=document.getElementById('chatLog');
   log.innerHTML+='<div style="color:#ffd700;margin-top:5px"><b>أنت:</b> '+q+'</div>';
-  const tradingKeys=['تداول','سعر','شمعة','شمعه','فوليوم','سيولة','سيوله','فوت برنت','دلتا','بروفايل','وقف','خسارة','خساره','ربح','صفقة','صفقه','استراتيجية','استراتيجيه','تحليل','ترند','دعم','مقاومة','مقاومه','ذهب','نازداك','يورو','نفط','فيوتشر','مؤشر','poc','vwap','cvd','delta','footprint','trade','price','entry','sl','tp'];
+  const tradingKeys=new Array('تداول','سعر','شمعة','شمعه','فوليوم','سيولة','سيوله','فوت برنت','دلتا','بروفايل','وقف','خسارة','خساره','ربح','صفقة','صفقه','استراتيجية','استراتيجيه','تحليل','ترند','دعم','مقاومة','مقاومه','ذهب','نازداك','يورو','نفط','فيوتشر','مؤشر','poc','vwap','cvd','delta','footprint','trade','price','entry','sl','tp');
   let isTrading=tradingKeys.some(k=>q.toLowerCase().includes(k));
   let ans='';
   if(!isTrading){
@@ -289,10 +288,10 @@ function askAI(){
     if(lb&&lb.d>0)ans+='يوجد ضغط شرائي إيجابي (Aggressive Buying) في الشمعة الحالية؛ يُفضل مراقبة ثبات السعر فوق POC للدخول مع إدارة مخاطرة لا تتجاوز 1-2% من رأس المال.';
     else ans+='يوجد ضغط بيعي (Aggressive Selling) في الشمعة الحالية؛ راقب مناطق الامتصاص (Absorption) عند القيعان قبل اتخاذ قرار الشراء.';
   }
-log.innerHTML+='🤖 AI التداول: '+ans+'';
-log.scrollTop=log.scrollHeight;
+  log.innerHTML+='<div style="color:#e6edf3;margin-top:3px"><b>🤖 AI التداول:</b> '+ans+'</div>';
+  log.scrollTop=log.scrollHeight;
 }
-  function rndWl(){
+function rndWl(){
   document.getElementById('wlList').innerHTML=watchlist.map(s=>{
     let it=symDB.find(x=>x.s==s)||{s,n:s,b:0},lp=(s==curSym&&curPrice())?curPrice().toFixed(2):it.b;
     return '<div class="item"><div onclick="selectSym(\''+s+'\')" style="flex:1;cursor:pointer"><b>'+s+'</b> - '+it.n+' <span style="color:#00e676">('+lp+')</span></div><button onclick="togWl(\''+s+'\')" style="background:#f23645;border:0">🗑️</button></div>';
@@ -311,7 +310,7 @@ function selectSym(s){curSym=s;document.getElementById('symBtn').innerText='🔍
 
 function init(){
   stpP();if(simTimer){clearInterval(simTimer);simTimer=null}
-  let sp=getSpec(),pr=sp.b,now=Date.now();bars=[];
+  let sp=getSpec(),pr=sp.b,now=Date.now();bars=new Array();
   for(let i=200;i>0;i--)tick(pr+(Math.random()-.49)*sp.tk*15,Math.round(Math.random()*30+2),Math.random()>.5,now-i*15000,0);
   rep=bars.length;off=Math.max(0,rep-vis);reqDraw();
   simTimer=setInterval(function(){
@@ -331,7 +330,7 @@ function tick(pr,qt,sl,tm,lv){
   }
   if(nw){
     let t0=tfM[tf]?Math.floor(tm/tfM[tf])*tfM[tf]:tm;
-    b={t:t0,o:pr,h:pr,l:pr,c:pr,v:0,d:0,tc:0,cvd:b?b.cvd:0,fp:{},tr:[]};bars.push(b);
+    b={t:t0,o:pr,h:pr,l:pr,c:pr,v:0,d:0,tc:0,cvd:b?b.cvd:0,fp:{},tr:new Array()};bars.push(b);
     if(lv&&rep==bars.length-1){rep=bars.length;if(off>rep-vis-2)off=Math.max(0,rep-vis)}
   }
   b.h=Math.max(b.h,pr);b.l=Math.min(b.l,pr);b.c=pr;b.v+=qt;b.tc++;let dl=sl?-qt:qt;b.d+=dl;b.cvd+=dl;
@@ -356,8 +355,8 @@ function rst(){stpP();rep=bars.length;off=Math.max(0,rep-vis);vZoom=1.0;updAccUI
 let sc={lo:0,hi:1,mh:100,sx:10};
 function y2p(y){return sc.lo+((sc.mh-y+8)/sc.mh)*(sc.hi-sc.lo)}
 
-c.addEventListener('touchstart',e=>{if(e.touches.length==2){dragM='PINCH';pDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY)}},{passive:true});
-c.addEventListener('touchmove',e=>{if(dragM=='PINCH'&&e.touches.length==2){let d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);if(pDist>0){vis=Math.max(8,Math.min(160,vis*(pDist/d)));pDist=d;reqDraw()}}},{passive:true});
+c.addEventListener('touchstart',e=>{if(e.touches.length==2){dragM='PINCH';pDist=Math.hypot(e.touches.item(0).clientX-e.touches.item(1).clientX,e.touches.item(0).clientY-e.touches.item(1).clientY)}},{passive:true});
+c.addEventListener('touchmove',e=>{if(dragM=='PINCH'&&e.touches.length==2){let d=Math.hypot(e.touches.item(0).clientX-e.touches.item(1).clientX,e.touches.item(0).clientY-e.touches.item(1).clientY);if(pDist>0){vis=Math.max(8,Math.min(160,vis*(pDist/d)));pDist=d;reqDraw()}}},{passive:true});
 
 c.onpointerdown=e=>{
   if(dragM=='PINCH')return;velX=0;
@@ -370,7 +369,7 @@ c.onpointerdown=e=>{
     else{let dr=getSavedDrawings();dr.push({type:tool,i1:p1.idx,p1:p1.p,i2:idx,p2:pr,col,lw,dash});saveDrawings(dr);p1=null;setTool('NONE');reqDraw()}
     return;
   }
-  if(tool=='VP'){if(!p1)p1=Math.max(0,bIdx);else{vpRange=[Math.min(p1,bIdx),Math.max(p1+1,bIdx)];p1=null;setTool('NONE');reqDraw()}return}
+  if(tool=='VP'){if(!p1)p1=Math.max(0,bIdx);else{vpRange=new Array(Math.min(p1,bIdx),Math.max(p1+1,bIdx));p1=null;setTool('NONE');reqDraw()}return}
   lastX=px;lastY=py;dragM=(px>c.width-58)?'YSCALE':'PAN';
 };
 c.onpointermove=e=>{
@@ -379,7 +378,6 @@ c.onpointermove=e=>{
   else if(dragM=='YSCALE'){vZoom=Math.max(0.3,Math.min(4.0,vZoom+(py-lastY)*0.005));lastY=py;reqDraw()}
 };
 c.onpointerup=()=>{if(dragM=='PAN'&&Math.abs(velX)>0.05){let g=()=>{if(Math.abs(velX)<0.02||dragM)return;off=Math.max(-5,Math.min(rep-3,off+velX));velX*=0.88;reqDraw();requestAnimationFrame(g)};requestAnimationFrame(g)}dragM=null};
-
 function hasInd(id){return activeInds.some(i=>i.id==id&&i.on)}
 
 function drawVP(i1,i2,sx,p2y){
@@ -387,16 +385,16 @@ function drawVP(i1,i2,sx,p2y){
   let sl=bars.slice(i1,e2+1),hi=-1e9,lo=1e9;sl.forEach(b=>{if(b.h>hi)hi=b.h;if(b.l<lo)lo=b.l});if(hi<=lo)return;
   let bn=32,rs=(hi-lo)/bn,ta=new Array(bn).fill(0),da=new Array(bn).fill(0),tv=0;
   sl.forEach(b=>{let s0=Math.max(0,Math.floor((b.l-lo)/rs)),s1=Math.min(bn-1,Math.floor((b.h-lo)/rs)),cn=Math.max(1,s1-s0+1);for(let r=s0;r<=s1;r++){ta[r]+=b.v/cn;da[r]+=b.d/cn;tv+=b.v/cn}});
-  let mt=Math.max.apply(null,ta),md2=Math.max.apply(null,da.map(Math.abs)),poc=ta.indexOf(mt),vh=poc,vl=poc,cv=mt;
-  while(cv<tv*.7&&(vh<bn-1||vl>0)){let uv=vh<bn-1?ta[vh+1]:0,dv=vl>0?ta[vl-1]:0;if(uv>=dv&&vh<bn-1){vh++;cv+=uv}else if(vl>0){vl--;cv+=dv}else break}
+  let mt=Math.max(...ta),md2=Math.max(...da.map(Math.abs)),poc=ta.indexOf(mt),vh=poc,vl=poc,cv=mt;
+  while(cv<tv*.7&&(vh<bn-1||vl>0)){let uv=vh<bn-1?ta.at(vh+1):0,dv=vl>0?ta.at(vl-1):0;if(uv>=dv&&vh<bn-1){vh++;cv+=uv}else if(vl>0){vl--;cv+=dv}else break}
   let ax=(i1-off)*sx+sx/2,ex=(e2-off)*sx+sx/2;
   for(let r=0;r<bn;r++){
     let yt=p2y(lo+(r+1)*rs),yb=p2y(lo+r*rs),bh=Math.max(1,yb-yt-1);
-    if(mt>0&&ta[r]>0){x.fillStyle=(r>=vl&&r<=vh)?'rgba(41,98,255,.5)':'rgba(41,98,255,.2)';x.fillRect(ax,yt,(ta[r]/mt)*55,bh)}
-    if(md2>0&&da[r]){x.fillStyle=da[r]>0?'rgba(0,230,118,.6)':'rgba(255,46,99,.6)';x.fillRect(ax-(Math.abs(da[r])/md2)*55,yt,(Math.abs(da[r])/md2)*55,bh)}
+    if(mt>0&&ta.at(r)>0){x.fillStyle=(r>=vl&&r<=vh)?'rgba(41,98,255,.5)':'rgba(41,98,255,.2)';x.fillRect(ax,yt,(ta.at(r)/mt)*55,bh)}
+    if(md2>0&&da.at(r)){x.fillStyle=da.at(r)>0?'rgba(0,230,118,.6)':'rgba(255,46,99,.6)';x.fillRect(ax-(Math.abs(da.at(r))/md2)*55,yt,(Math.abs(da.at(r))/md2)*55,bh)}
   }
   x.lineWidth=2;x.strokeStyle='#ffd700';x.beginPath();x.moveTo(ax,p2y(lo+(poc+.5)*rs));x.lineTo(ex,p2y(lo+(poc+.5)*rs));x.stroke();
-  x.lineWidth=1;x.strokeStyle='rgba(255,255,255,.7)';[p2y(lo+(vh+1)*rs),p2y(lo+vl*rs)].forEach(y=>{x.beginPath();x.moveTo(ax,y);x.lineTo(ex,y);x.stroke()});
+  x.lineWidth=1;x.strokeStyle='rgba(255,255,255,.7)';new Array(p2y(lo+(vh+1)*rs),p2y(lo+vl*rs)).forEach(y=>{x.beginPath();x.moveTo(ax,y);x.lineTo(ex,y);x.stroke()});
 }
 
 function draw(){
@@ -415,15 +413,15 @@ function draw(){
   for(let i=0;i<=5;i++){let p=lo+((hi-lo)/5)*i,y=p2y(p);x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke();x.fillText(p.toFixed(2),w+4,y+3)}
 
   if(hasInd('SES_VP')&&rep>10)drawVP(Math.max(0,rep-50),rep-1,sx,p2y);
-  if(vpRange)drawVP(vpRange[0],vpRange[1],sx,p2y);
+  if(vpRange)drawVP(vpRange.at(0),vpRange.at(1),sx,p2y);
   if(hasInd('CMP_VP')){
     let bn=32,rs=(hi-lo)/bn,ta=new Array(bn).fill(0);
     sl.forEach(b=>{let s0=Math.max(0,Math.floor((b.l-lo)/rs)),s1=Math.min(bn-1,Math.floor((b.h-lo)/rs));for(let r=s0;r<=s1;r++)ta[r]+=b.v/Math.max(1,s1-s0+1)});
-    let mt=Math.max.apply(null,ta),poc=ta.indexOf(mt);
-    for(let r=0;r<bn;r++)if(mt>0&&ta[r]>0){let bw=(ta[r]/mt)*36;x.fillStyle=r==poc?'rgba(255,215,0,.5)':'rgba(120,123,134,.3)';x.fillRect(w-bw,p2y(lo+(r+1)*rs),bw,Math.max(1,p2y(lo+r*rs)-p2y(lo+(r+1)*rs)-1))}
+    let mt=Math.max(...ta),poc=ta.indexOf(mt);
+    for(let r=0;r<bn;r++)if(mt>0&&ta.at(r)>0){let bw=(ta.at(r)/mt)*36;x.fillStyle=r==poc?'rgba(255,215,0,.5)':'rgba(120,123,134,.3)';x.fillRect(w-bw,p2y(lo+(r+1)*rs),bw,Math.max(1,p2y(lo+r*rs)-p2y(lo+(r+1)*rs)-1))}
   }
 
-  let style=document.getElementById('cStyle').value,maxVol=Math.max.apply(null,sl.map(b=>b.v))||1;
+  let style=document.getElementById('cStyle').value,maxVol=Math.max(...sl.map(b=>b.v))||1;
   let sCVP=hasInd('CND_VP')&&sx>=15,sBub=hasInd('BUBBLES'),sAbs=hasInd('ABSORB'),sHeat=hasInd('HEATMAP');
   let avVol=sl.reduce((s,b)=>s+b.v,0)/Math.max(1,sl.length);
 
@@ -435,66 +433,72 @@ function draw(){
 
   sl.forEach((b,i)=>{
     let realI=sIdx+i,cx=(realI-off)*sx+sx/2,yo=p2y(b.o),yc=p2y(b.c),yh=p2y(b.h),yl=p2y(b.l),bl=b.c>=b.o;
-if(realI%Math.max(1,Math.floor(vis/5))==0&&b.t){let dt=new Date(b.t);x.fillStyle='#787b86';x.fillText(String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0'),cx-12,mh+14)}
-if(style!='LINE'){
-x.strokeStyle=bl?'#089981':'#f23645';x.fillStyle=style=='FP'?(bl?'rgba(8,153,129,.2)':'rgba(242,54,69,.2)'):(bl?'#089981':'#f23645');
-x.beginPath();x.moveTo(cx,yh);x.lineTo(cx,yl);x.stroke();
-let bw=style=='VOLC'?Math.max(3,(b.v/maxVol)(sx.95)):(style=='FP'?sx*.88:sx*.58);
-x.fillRect(cx-bw/2,Math.min(yo,yc),bw,Math.max(1,Math.abs(yc-yo)));
-}
-let ks=Object.keys(b.fp);
-if(ks.length){
-let mv=0,pk=null;ks.forEach(k=>{let t=b.fp[k].b+b.fp[k].a;if(t>mv){mv=t;pk=k}});
-if(sHeat)ks.forEach(k=>{let tot=b.fp[k].b+b.fp[k].a;if(tot>avVol*.4){x.fillStyle='rgba(255,152,0,'+Math.min(.45,tot/(avVol2))+')';x.fillRect(cx-sx/2,p2y(parseFloat(k))-3,sx,6)}});
-if(sCVP&&mv>0)ks.forEach(k=>{let yl2=p2y(parseFloat(k)),w2=((b.fp[k].b+b.fp[k].a)/mv)(sx*.45);x.fillStyle=k==pk?'rgba(255,215,0,.65)':'rgba(41,98,255,.45)';x.fillRect(cx-sx*.45,yl2-2,w2,4)});
-if(style=='FP'&&sx>=20){
-x.font='9px monospace';
-ks.forEach(k=>{
-let yl2=p2y(parseFloat(k)),bd=b.fp[k].b,ak=b.fp[k].a;
-if(k==pk){x.strokeStyle='#ffd700';x.strokeRect(cx-sx*.42,yl2-6,sx*.84,12)}
-x.fillStyle=(ak>0&&bd>=ak2.5)?'#ff2e63':'#d1d4dc';x.textAlign='right';x.fillText(Math.round(bd),cx-2,yl2+3);
-x.fillStyle=(bd>0&&ak>=bd2.5)?'#00e676':'#d1d4dc';x.textAlign='left';x.fillText(Math.round(ak),cx+2,yl2+3);
-});x.textAlign='start';
-}
-}
-if(sAbs&&b.v>avVol1.6&&Math.abs(b.c-b.o)<(b.h-b.l).3){x.fillStyle=b.c>(b.h+b.l)/2?'#00e676':'#ff2e63';x.fillText(b.c>(b.h+b.l)/2?'▲':'▼',cx-4,b.c>(b.h+b.l)/2?yl+11:yh-3)}
-if(sBub)b.tr.forEach(t=>{if(t.q>=14){let r=Math.min(16,Math.max(5,(t.q/14)4)),by=p2y(t.p);x.beginPath();x.arc(cx,by,r,0,6.28);x.fillStyle=t.s?'rgba(255,46,99,.45)':'rgba(0,230,118,.45)';x.fill();x.strokeStyle=t.s?'#ff2e63':'#00e676';x.stroke()}});
-if(sBD){let bt=mh+16;x.fillStyle=b.d>=0?'rgba(0,230,118,.25)':'rgba(255,46,99,.25)';x.fillRect(cx-sx.45,bt,sx*.9,14);if(sx>=18){x.fillStyle=b.d>=0?'#00e676':'#ff2e63';x.textAlign='center';x.fillText(Math.round(b.d),cx,bt+10);x.textAlign='start'}}
-});
-if(hasInd('VWAP')){let pv=0,v=0;x.strokeStyle='#e040fb';x.lineWidth=1.5;x.beginPath();sl.forEach((b,i)=>{let t=(b.h+b.l+b.c)/3;pv+=tb.v;v+=b.v;let y=p2y(v>0?pv/v:b.c),cx=(sIdx+i-off)sx+sx/2;i?x.lineTo(cx,y):x.moveTo(cx,y)});x.stroke();x.lineWidth=1}
-if(hasInd('EMA')){[20,50].forEach((len,idx)=>{let k=2/(len+1),e=sl[0].c;x.strokeStyle=idx?'#ff9800':'#00bcd4';x.beginPath();sl.forEach((b,i)=>{e=b.ck+e(1-k);let cx=(sIdx+i-off)sx+sx/2;i?x.lineTo(cx,p2y(e)):x.moveTo(cx,p2y(e))});x.stroke()})}
-if(hasInd('BB')){for(let i=20;i<sl.length;i++){let sub=sl.slice(i-20,i),m=sub.reduce((s,b)=>s+b.c,0)/20,sd=Math.sqrt(sub.reduce((s,b)=>s+Math.pow(b.c-m,2),0)/20),cx=(sIdx+i-off)sx+sx/2;x.fillStyle='rgba(0,188,212,.5)';x.fillRect(cx,p2y(m+sd2),2,2);x.fillRect(cx,p2y(m-sd2),2,2)}}
-if(hasInd('PIVOT')){let p=(hi+lo+sl[sl.length-1].c)/3;x.strokeStyle='rgba(255,255,255,.35)';x.beginPath();x.moveTo(0,p2y(p));x.lineTo(w,p2y(p));x.stroke()}
-getSavedDrawings().forEach(d=>{
-x.strokeStyle=d.col||'#ffd700';x.lineWidth=d.lw||2;if(d.dash)x.setLineDash([5,4]);
-let x1=(d.i1-off)*sx+sx/2,x2=(d.i2-off)*sx+sx/2,y1=p2y(d.p1),y2=p2y(d.p2);
-if(d.type=='HORIZ'){let y=p2y(d.p);x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke()}
-else if(d.type=='TREND'){x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.stroke()}
-else if(d.type=='BOX'){x.fillStyle=(d.col||'#2962ff')+'33';x.fillRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1));x.strokeRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1))}
-else if(d.type=='FIB'){[0,0.382,0.5,0.618,1].forEach(lv=>{let fy=p2y(d.p1+(d.p2-d.p1)*lv);x.beginPath();x.moveTo(Math.min(x1,x2),fy);x.lineTo(Math.max(x1,x2),fy);x.stroke()})}
-x.setLineDash([]);x.lineWidth=1;
-});
-if(acc.pos){
-let y=p2y(acc.pos.entry);x.strokeStyle=acc.pos.side=='BUY'?'#00e676':'#ff2e63';x.lineWidth=1.5;x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke();
-x.fillStyle=acc.pos.side=='BUY'?'#00e676':'#ff2e63';x.fillText(acc.pos.side+' @ '+acc.pos.entry.toFixed(2),8,y-4);
-if(acc.pos.sl){let ys=p2y(acc.pos.sl);x.strokeStyle='#ff2e63';x.setLineDash([4,3]);x.beginPath();x.moveTo(0,ys);x.lineTo(w,ys);x.stroke();x.fillText('SL @ '+acc.pos.sl.toFixed(2),8,ys-3)}
-if(acc.pos.tp){let yt=p2y(acc.pos.tp);x.strokeStyle='#00e676';x.setLineDash([4,3]);x.beginPath();x.moveTo(0,yt);x.lineTo(w,yt);x.stroke();x.fillText('TP @ '+acc.pos.tp.toFixed(2),8,yt-3)}
-x.setLineDash([]);x.lineWidth=1;
-}
-let lp=curPrice();if(lp){let ly=p2y(lp);x.fillStyle='#2962ff';x.fillRect(w+1,ly-8,56,16);x.fillStyle='#fff';x.fillText(lp.toFixed(2),w+4,ly+4)}
-let curY=mh+(sBD?34:16);
-if(sCVD){
-let ch=c.height*.13;x.strokeStyle='#2a2e39';x.beginPath();x.moveTo(0,curY);x.lineTo(c.width,curY);x.stroke();
-let chi=-1e9,clo=1e9;sl.forEach(b=>{if(b.cvd>chi)chi=b.cvd;if(b.cvd<clo)clo=b.cvd});
-if(chi>clo){x.strokeStyle='#00bcd4';x.beginPath();sl.forEach((b,i)=>{let px=(sIdx+i-off)*sx+sx/2,py=curY+ch-((b.cvd-clo)/(chi-clo))ch;i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();x.fillStyle='#00bcd4';x.fillText("CVD",5,curY+10)}
-curY+=ch+2;
-}
-if(sRSI){
-let ch=c.height.12;x.strokeStyle='#2a2e39';x.beginPath();x.moveTo(0,curY);x.lineTo(c.width,curY);x.stroke();
-x.strokeStyle='#e040fb';x.beginPath();
-sl.forEach((b,i)=>{let rsi=50+((b.c-b.o)/Math.max(.0001,b.h-b.l))*35,px=(sIdx+i-off)*sx+sx/2,py=curY+ch-(rsi/100)*ch;i?x.lineTo(px,py):x.moveTo(px,py)});
-x.stroke();x.fillStyle='#e040fb';x.fillText("RSI 14",5,curY+10);
-}
-}
+    if(realI%Math.max(1,Math.floor(vis/5))==0&&b.t){let dt=new Date(b.t);x.fillStyle='#787b86';x.fillText(String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0'),cx-12,mh+14)}
+    if(style!='LINE'){
+      x.strokeStyle=bl?'#089981':'#f23645';x.fillStyle=style=='FP'?(bl?'rgba(8,153,129,.2)':'rgba(242,54,69,.2)'):(bl?'#089981':'#f23645');
+      x.beginPath();x.moveTo(cx,yh);x.lineTo(cx,yl);x.stroke();
+      let bw=style=='VOLC'?Math.max(3,(b.v/maxVol)*(sx*.95)):(style=='FP'?sx*.88:sx*.58);
+      x.fillRect(cx-bw/2,Math.min(yo,yc),bw,Math.max(1,Math.abs(yc-yo)));
+    }
+    let ks=Object.keys(b.fp);
+    if(ks.length){
+      let mv=0,pk=null;ks.forEach(k=>{let t=b.fp[k].b+b.fp[k].a;if(t>mv){mv=t;pk=k}});
+      if(sHeat)ks.forEach(k=>{let tot=b.fp[k].b+b.fp[k].a;if(tot>avVol*.4){x.fillStyle='rgba(255,152,0,'+Math.min(.45,tot/(avVol*2))+')';x.fillRect(cx-sx/2,p2y(parseFloat(k))-3,sx,6)}});
+      if(sCVP&&mv>0)ks.forEach(k=>{let yl2=p2y(parseFloat(k)),w2=((b.fp[k].b+b.fp[k].a)/mv)*(sx*.45);x.fillStyle=k==pk?'rgba(255,215,0,.65)':'rgba(41,98,255,.45)';x.fillRect(cx-sx*.45,yl2-2,w2,4)});
+      if(style=='FP'&&sx>=20){
+        x.font='9px monospace';
+        ks.forEach(k=>{
+          let yl2=p2y(parseFloat(k)),bd=b.fp[k].b,ak=b.fp[k].a;
+          if(k==pk){x.strokeStyle='#ffd700';x.strokeRect(cx-sx*.42,yl2-6,sx*.84,12)}
+          x.fillStyle=(ak>0&&bd>=ak*2.5)?'#ff2e63':'#d1d4dc';x.textAlign='right';x.fillText(Math.round(bd),cx-2,yl2+3);
+          x.fillStyle=(bd>0&&ak>=bd*2.5)?'#00e676':'#d1d4dc';x.textAlign='left';x.fillText(Math.round(ak),cx+2,yl2+3);
+        });x.textAlign='start';
+      }
+    }
+    if(sAbs&&b.v>avVol*1.6&&Math.abs(b.c-b.o)<(b.h-b.l)*.3){x.fillStyle=b.c>(b.h+b.l)/2?'#00e676':'#ff2e63';x.fillText(b.c>(b.h+b.l)/2?'▲':'▼',cx-4,b.c>(b.h+b.l)/2?yl+11:yh-3)}
+    if(sBub)b.tr.forEach(t=>{if(t.q>=14){let r=Math.min(16,Math.max(5,(t.q/14)*4)),by=p2y(t.p);x.beginPath();x.arc(cx,by,r,0,6.28);x.fillStyle=t.s?'rgba(255,46,99,.45)':'rgba(0,230,118,.45)';x.fill();x.strokeStyle=t.s?'#ff2e63':'#00e676';x.stroke()}});
+    if(sBD){let bt=mh+16;x.fillStyle=b.d>=0?'rgba(0,230,118,.25)':'rgba(255,46,99,.25)';x.fillRect(cx-sx*.45,bt,sx*.9,14);if(sx>=18){x.fillStyle=b.d>=0?'#00e676':'#ff2e63';x.textAlign='center';x.fillText(Math.round(b.d),cx,bt+10);x.textAlign='start'}}
+  });
 
+  if(hasInd('VWAP')){let pv=0,v=0;x.strokeStyle='#e040fb';x.lineWidth=1.5;x.beginPath();sl.forEach((b,i)=>{let t=(b.h+b.l+b.c)/3;pv+=t*b.v;v+=b.v;let y=p2y(v>0?pv/v:b.c),cx=(sIdx+i-off)*sx+sx/2;i?x.lineTo(cx,y):x.moveTo(cx,y)});x.stroke();x.lineWidth=1}
+  if(hasInd('EMA')){new Array(20,50).forEach((len,idx)=>{let k=2/(len+1),e=sl.at(0).c;x.strokeStyle=idx?'#ff9800':'#00bcd4';x.beginPath();sl.forEach((b,i)=>{e=b.c*k+e*(1-k);let cx=(sIdx+i-off)*sx+sx/2;i?x.lineTo(cx,p2y(e)):x.moveTo(cx,p2y(e))});x.stroke()})}
+  if(hasInd('BB')){for(let i=20;i<sl.length;i++){let sub=sl.slice(i-20,i),m=sub.reduce((s,b)=>s+b.c,0)/20,sd=Math.sqrt(sub.reduce((s,b)=>s+Math.pow(b.c-m,2),0)/20),cx=(sIdx+i-off)*sx+sx/2;x.fillStyle='rgba(0,188,212,.5)';x.fillRect(cx,p2y(m+sd*2),2,2);x.fillRect(cx,p2y(m-sd*2),2,2)}}
+  if(hasInd('PIVOT')){let p=(hi+lo+sl.at(-1).c)/3;x.strokeStyle='rgba(255,255,255,.35)';x.beginPath();x.moveTo(0,p2y(p));x.lineTo(w,p2y(p));x.stroke()}
 
+  getSavedDrawings().forEach(d=>{
+    x.strokeStyle=d.col||'#ffd700';x.lineWidth=d.lw||2;if(d.dash)x.setLineDash(new Array(5,4));
+    let x1=(d.i1-off)*sx+sx/2,x2=(d.i2-off)*sx+sx/2,y1=p2y(d.p1),y2=p2y(d.p2);
+    if(d.type=='HORIZ'){let y=p2y(d.p);x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke()}
+    else if(d.type=='TREND'){x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.stroke()}
+    else if(d.type=='BOX'){x.fillStyle=(d.col||'#2962ff')+'33';x.fillRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1));x.strokeRect(Math.min(x1,x2),Math.min(y1,y2),Math.abs(x2-x1),Math.abs(y2-y1))}
+    else if(d.type=='FIB'){new Array(0,0.382,0.5,0.618,1).forEach(lv=>{let fy=p2y(d.p1+(d.p2-d.p1)*lv);x.beginPath();x.moveTo(Math.min(x1,x2),fy);x.lineTo(Math.max(x1,x2),fy);x.stroke()})}
+    x.setLineDash(new Array());x.lineWidth=1;
+  });
+
+  if(acc.pos){
+    let y=p2y(acc.pos.entry);x.strokeStyle=acc.pos.side=='BUY'?'#00e676':'#ff2e63';x.lineWidth=1.5;x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke();
+    x.fillStyle=acc.pos.side=='BUY'?'#00e676':'#ff2e63';x.fillText(acc.pos.side+' @ '+acc.pos.entry.toFixed(2),8,y-4);
+    if(acc.pos.sl){let ys=p2y(acc.pos.sl);x.strokeStyle='#ff2e63';x.setLineDash(new Array(4,4));x.beginPath();x.moveTo(0,ys);x.lineTo(w,ys);x.stroke();x.fillText('SL @ '+acc.pos.sl.toFixed(2),8,ys-3)}
+    if(acc.pos.tp){let yt=p2y(acc.pos.tp);x.strokeStyle='#00e676';x.setLineDash(new Array(4,4));x.beginPath();x.moveTo(0,yt);x.lineTo(w,yt);x.stroke();x.fillText('TP @ '+acc.pos.tp.toFixed(2),8,yt-3)}
+    x.setLineDash(new Array());x.lineWidth=1;
+  }
+
+  let lp=curPrice();if(lp){let ly=p2y(lp);x.fillStyle='#2962ff';x.fillRect(w+1,ly-8,56,16);x.fillStyle='#fff';x.fillText(lp.toFixed(2),w+4,ly+4)}
+
+  let curY=mh+(sBD?34:16);
+  if(sCVD){
+    let ch=c.height*.13;x.strokeStyle='#2a2e39';x.beginPath();x.moveTo(0,curY);x.lineTo(c.width,curY);x.stroke();
+    let chi=-1e9,clo=1e9;sl.forEach(b=>{if(b.cvd>chi)chi=b.cvd;if(b.cvd<clo)clo=b.cvd});
+    if(chi>clo){x.strokeStyle='#00bcd4';x.beginPath();sl.forEach((b,i)=>{let px=(sIdx+i-off)*sx+sx/2,py=curY+ch-((b.cvd-clo)/(chi-clo))*ch;i?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();x.fillStyle='#00bcd4';x.fillText("CVD",5,curY+10)}
+    curY+=ch+2;
+  }
+  if(sRSI){
+    let ch=c.height*.12;x.strokeStyle='#2a2e39';x.beginPath();x.moveTo(0,curY);x.lineTo(c.width,curY);x.stroke();
+    x.strokeStyle='#e040fb';x.beginPath();
+    sl.forEach((b,i)=>{let rsi=50+((b.c-b.o)/Math.max(.0001,b.h-b.l))*35,px=(sIdx+i-off)*sx+sx/2,py=curY+ch-(rsi/100)*ch;i?x.lineTo(px,py):x.moveTo(px,py)});
+    x.stroke();x.fillStyle='#e040fb';x.fillText("RSI 14",5,curY+10);
+  }
+}
+</script>
+</body>
+</html>
