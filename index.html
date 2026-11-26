@@ -196,6 +196,7 @@ table{width:100%;border-collapse:collapse;font-size:10px;margin-top:6px}th,td{bo
   <div style="display:flex;gap:4px"><input type="text" id="aiInp" placeholder="اكتب سؤالك في التداول فقط..." style="flex:1"><button class="buy" onclick="askAI()">إرسال</button></div>
 </div></div>
 <script>
+  window.onerror=function(m,u,l){alert('الخطأ في سطر '+l+': '+m)};
 const c=document.getElementById('c'),x=c.getContext('2d');
 let bars=new Array(),rep=0,tmr=null,off=0.0,vis=45.0,tool='NONE',p1=null,simTimer=null;
 let curSym='GCZ6',curTf='5m',curUser=null,selDrawIdx=-1,crossPrice=0;
