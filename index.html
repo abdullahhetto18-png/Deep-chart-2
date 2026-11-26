@@ -637,7 +637,7 @@ function draw(){
   if(pos){
     let y=p2y(pos.entry),pnl=(pos.side=='BUY'?(curPrice()-pos.entry):(pos.entry-curPrice()))*pos.lot*getSpec().m;
     x.strokeStyle=pos.side=='BUY'?'#00e676':'#ff2e63';x.lineWidth=1.5;x.beginPath();x.moveTo(0,y);x.lineTo(w,y);x.stroke();x.lineWidth=1;
-    x.fillStyle=pos.side=='BUY'?'#089981':'#f23645';x.fillRect(6,y-10,54,18);x.fillStyle='#fff';x.fillText((pnl>=0?'+':'')+pnl.toFixed(0)+'\$',10,y+3);
+    x.fillStyle=pos.side=='BUY'?'#089981':'#f23645';x.fillRect(6,y-10,54,18);x.fillStyle='#fff';x.fillText((pnl>=0?'+':'')+pnl.toFixed(0)+'$',10,y+3);
     x.fillStyle='#f23645';x.fillRect(64,y-10,62,18);x.fillStyle='#fff';x.fillText('SL: '+(pos.sl?pos.sl.toFixed(1):'تحديد'),68,y+3);
     x.fillStyle='#089981';x.fillRect(130,y-10,62,18);x.fillStyle='#fff';x.fillText('TP: '+(pos.tp?pos.tp.toFixed(1):'تحديد'),134,y+3);
     if(pos.sl){let ys=p2y(pos.sl);x.strokeStyle='#f23645';x.setLineDash(new Array(4,4));x.beginPath();x.moveTo(0,ys);x.lineTo(w,ys);x.stroke();x.setLineDash(new Array())}
